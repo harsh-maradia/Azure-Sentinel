@@ -1,15 +1,16 @@
 ﻿id: a1d7d1c7-5677-4abe-a717-60cdf261e0c7
 Function:
   Title: Parser for BitSightDiligenceHistoricalStatistics
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightDiligenceHistoricalStatistics
 FunctionAlias: BitSightDiligenceHistoricalStatistics
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightDiligence_historical_statistics_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightDiligence_historical_statistics_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "DiligenceHistoricalStatistics",
@@ -17,6 +18,25 @@ FunctionQuery: |
                     Category = column_ifexists('category', ''),
                     Date = column_ifexists('date', ''),
                     CompanyName = column_ifexists('company_name', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Count,
+                    Category,
+                    Date,
+                    CompanyName
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightDiligence_historical_statistics_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "DiligenceHistoricalStatistics",
+                    Count = todouble(column_ifexists('count_d', '')),
+                    Category = tostring(column_ifexists('Category', '')),
+                    Date = tostring(column_ifexists('date_s', '')),
+                    CompanyName = tostring(column_ifexists('company_name_s', ''))
             | project
                     TimeGenerated,
                     EventVendor,

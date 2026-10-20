@@ -25,16 +25,18 @@ The [BitSight](https://www.BitSight.com/) Data Connector supports evidence-based
     * Industries statistics
     * Observations statistics
     * Diligence historical statistics
-3. `BreachesDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
+3. `AssetsDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
+    * Assets (new, updated and removed assets of each company)
+4. `BreachesDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
     * Breaches details
-4. `CompaniesDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
+5. `CompaniesDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
     * Companies details
-5. `FindingsDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
+6. `FindingsDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
     * Findings Data
-6. `FindingsSummaryDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
+7. `FindingsSummaryDetails/` - This contains the Azure function source code to ingest the data of below mentioned endpoint.
     * Findings summary
-7. `PortFolioCompanies/` - This contains azure function source code to ingest the data of companies available in Portfolio which will be used by other functions to retrieve various details for each company.
-8. `SharedCode/` - This contains the constants, logger, exceptions and common methods used in each azure function.
+8. `PortFolioCompanies/` - This contains azure function source code to ingest the data of companies available in Portfolio which will be used by other functions to retrieve various details for each company.
+9. `SharedCode/` - This contains the constants, logger, exceptions and common methods used in each azure function.
 
 ## Prerequisites<a name="Prerequisites"></a>
 1. BitSight API Token is required.  See the documentation to [learn more](https://help.bitsighttech.com/hc/en-us/articles/115014888388-API-Token-Management) about API Token.
@@ -119,11 +121,23 @@ Findings_Table_Name  | BitsightFindings_data
 Graph_Table_Name  | BitsightGraph_data
 Industrial_Statistics_Table_Name  | BitsightIndustrial_statistics
 Observation_Statistics_Table_Name  | BitsightObservation_statistics
+Assets_Table_Name  | BitsightAssets_data
 Log Level  | INFO
 Schedule  | 0 0 * * * *
 Schedule_Portfolio | 0 */30 *  * * *
+Schedule_Assets | 0 */10 * * * *
+Assets_Refresh_Hours | 24
 
 The connector should start ingesting the data into the logs at every time interval specified in Schedule during configuration.
+
+### Assets data
+
+The `AssetsDetails` function calls the BitSight `GET /ratings/v1/companies/{company_guid}/assets` endpoint for every company selected in `Companies` and stores the result in the `BitsightAssets_data_CL` table.
+
+* The function runs on `Schedule_Assets`. A company is fetched again only after `Assets_Refresh_Hours` hours have passed since its last completed fetch, so the frequent schedule only controls how fast a large portfolio is worked through.
+* The first fetch of a company ingests all its assets (`change_type` = `New`). Later fetches ingest only the assets that are new (`New`), changed (`Updated`) or no longer returned by BitSight (`Removed`).
+* The hashes used to detect the changes are kept in the `BitSightAssetsCheckpoint` table of the function app storage account. `temporary_id` is not part of the comparison.
+* A company which is too large for one run is continued in the next run. A company that BitSight no longer allows to view (HTTP 403) is skipped and checked again after `Assets_Refresh_Hours` hours.
 
 
 ## Installing for testing<a name="Installing-for-testing"></a>

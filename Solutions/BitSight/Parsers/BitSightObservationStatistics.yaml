@@ -1,15 +1,16 @@
 ﻿id: 144a9fa0-98a3-40f7-b39e-9c7ff0229290
 Function:
   Title: Parser for BitSightObservationStatistics
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightObservationStatistics
 FunctionAlias: BitSightObservationStatistics
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightObservation_statistics_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightObservation_statistics_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "ObservationStatistics",
@@ -18,6 +19,27 @@ FunctionQuery: |
                     AverageDurationDays = column_ifexists('average_duration_days', ''),
                     RiskVector = column_ifexists('risk_vector', ''),
                     CompanyName = column_ifexists('Company_name', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Count,
+                    CountPeriod,
+                    AverageDurationDays,
+                    RiskVector,
+                    CompanyName
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightObservation_statistics_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "ObservationStatistics",
+                    Count = todouble(column_ifexists('count_d', '')),
+                    CountPeriod = tostring(column_ifexists('count_period_s', '')),
+                    AverageDurationDays = todouble(column_ifexists('average_duration_days_d', '')),
+                    RiskVector = tostring(column_ifexists('risk_vector_s', '')),
+                    CompanyName = tostring(column_ifexists('Company_name_s', ''))
             | project
                     TimeGenerated,
                     EventVendor,

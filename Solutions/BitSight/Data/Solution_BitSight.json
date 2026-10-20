@@ -8,16 +8,9 @@
   "Workbooks": [
     "Workbooks/BitSightWorkbook.json"
   ],
-  "Analytic Rules": [
-    "Analytic Rules/BitSightDropInCompanyRatings.yaml",
-    "Analytic Rules/BitSightNewAlertFound.yaml",
-    "Analytic Rules/BitSightCompromisedSystemsDetected.yaml",
-    "Analytic Rules/BitSightDiligenceRiskCategoryDetected.yaml",
-    "Analytic Rules/BitSightDropInHeadlineRating.yaml",
-    "Analytic Rules/BitSightNewBreachFound.yaml"
-  ],
   "Parsers": [
     "Parsers/BitSightAlerts.yaml",
+    "Parsers/BitSightAssets.yaml",
     "Parsers/BitSightBreaches.yaml",
     "Parsers/BitSightCompanyDetails.yaml",
     "Parsers/BitSightCompanyRatingDetails.yaml",
@@ -32,12 +25,10 @@
     "Parsers/BitSightVulnerabilitiesFindingsSummary.yaml"
   ],
   "Data Connectors": [
-    "Data Connectors/BitSightDataConnector/BitSight_API_FunctionApp.json",
-    "Data Connectors/BitSight_Events_CCF/ConnectorDefinition.json",
-    "Data Connectors/BitSight_CCF/ConnectorDefinition.json"
+    "Data Connectors/BitSightDataConnector/BitSight_API_FunctionApp.json"
   ],
   "BasePath": "C:\\GitHub\\Azure-Sentinel\\Solutions\\BitSight",
-  "Version": "3.2.0",
+  "Version": "3.3.0",
   "Metadata": "SolutionMetadata.json",
   "TemplateSpec": true,
   "Is1PConnector": false

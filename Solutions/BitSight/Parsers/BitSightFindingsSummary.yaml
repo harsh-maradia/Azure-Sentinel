@@ -1,15 +1,16 @@
 ﻿id: 39844fcb-d451-4050-ae41-23c8f27b611c
 Function:
   Title: Parser for BitSightFindingsSummary
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightFindingsSummary
 FunctionAlias: BitSightFindingsSummary
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightFindings_summary_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightFindings_summary_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "FindingsSummary",
@@ -24,6 +25,39 @@ FunctionQuery: |
                     Severity = column_ifexists('severity', ''),
                     StartDate = column_ifexists('start_date', ''),
                     Description = column_ifexists('description', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Company,
+                    Confidence,
+                    EndDate,
+                    EventCount,
+                    FirstSeen,
+                    HostCount,
+                    Id,
+                    Name,
+                    Severity,
+                    StartDate,
+                    Description
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightFindings_summary_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "FindingsSummary",
+                    Company = tostring(column_ifexists('Company_s', '')),
+                    Confidence = tostring(column_ifexists('confidence_s', '')),
+                    EndDate = todatetime(column_ifexists('end_date_s', '')),
+                    EventCount = todouble(column_ifexists('event_count_d', '')),
+                    FirstSeen = todatetime(column_ifexists('first_seen_s', '')),
+                    HostCount = todouble(column_ifexists('host_count_d', '')),
+                    Id = tostring(column_ifexists('id_s', '')),
+                    Name = tostring(column_ifexists('name_s', '')),
+                    Severity = tostring(column_ifexists('severity_s', '')),
+                    StartDate = todatetime(column_ifexists('start_date_s', '')),
+                    Description = tostring(column_ifexists('description_s', ''))
             | project
                     TimeGenerated,
                     EventVendor,

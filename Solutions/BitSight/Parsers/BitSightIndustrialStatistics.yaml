@@ -1,15 +1,16 @@
 ﻿id: 44c51bc8-1c06-46ca-ba25-0422d0af4015
 Function:
   Title: Parser for BitSightIndustrialStatistics
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightIndustrialStatistics
 FunctionAlias: BitSightIndustrialStatistics
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightIndustrial_statistics_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightIndustrial_statistics_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "IndustrialStatistics",
@@ -18,6 +19,27 @@ FunctionQuery: |
                     AverageDurationDays = column_ifexists('average_duration_days', ''),
                     RiskVector = column_ifexists('risk_vector', ''),
                     CompanyName = column_ifexists('Company_name', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Count,
+                    CountPeriod,
+                    AverageDurationDays,
+                    RiskVector,
+                    CompanyName
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightIndustrial_statistics_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "IndustrialStatistics",
+                    Count = todouble(column_ifexists('count_d', '')),
+                    CountPeriod = tostring(column_ifexists('count_period_s', '')),
+                    AverageDurationDays = todouble(column_ifexists('average_duration_days_d', '')),
+                    RiskVector = tostring(column_ifexists('risk_vector_s', '')),
+                    CompanyName = tostring(column_ifexists('Company_name_s', ''))
             | project
                     TimeGenerated,
                     EventVendor,

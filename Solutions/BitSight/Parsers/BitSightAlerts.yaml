@@ -1,15 +1,16 @@
 ﻿id: ce09d0fb-6816-496d-822e-198a56187a30
 Function:
   Title: Parser for BitSightAlerts
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightAlerts
 FunctionAlias: BitSightAlerts
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightAlerts_data_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightAlerts_data_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "Alert",
@@ -24,6 +25,39 @@ FunctionQuery: |
                     FolderName = column_ifexists('folder_name', ''),
                     Severity = column_ifexists('severity', ''),
                     Trigger = column_ifexists('trigger', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    GUID,
+                    AlertType,
+                    AlertDate,
+                    StartDate,
+                    CompanyName,
+                    CompanyGUID,
+                    CompanyURL,
+                    FolderGUID,
+                    FolderName,
+                    Severity,
+                    Trigger
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            Alerts_data_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "Alert",
+                    GUID = todouble(column_ifexists('guid_d', '')),
+                    AlertType = tostring(column_ifexists('alert_type_s', '')),
+                    AlertDate = todatetime(column_ifexists('alert_date_s', '')),
+                    StartDate = todatetime(column_ifexists('start_date_s', '')),
+                    CompanyName = tostring(column_ifexists('company_name_s', '')),
+                    CompanyGUID = tostring(column_ifexists('company_guid_g', '')),
+                    CompanyURL = tostring(column_ifexists('company_url_s', '')),
+                    FolderGUID = tostring(column_ifexists('folder_guid_g', '')),
+                    FolderName = tostring(column_ifexists('folder_name_s', '')),
+                    Severity = tostring(column_ifexists('severity_s', '')),
+                    Trigger = tostring(column_ifexists('trigger_s', ''))
             | project
                     TimeGenerated,
                     EventVendor,

@@ -1,15 +1,16 @@
 ﻿id: 6495f5c6-12ac-4416-8060-94e3cfad695b
 Function:
   Title: Parser for BitSightGraphData
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightGraphData
 FunctionAlias: BitSightGraphData
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightGraph_data_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightGraph_data_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "GraphData",
@@ -17,6 +18,25 @@ FunctionQuery: |
                     Rating = column_ifexists('Rating', ''),
                     CompanyName = column_ifexists('Company_name', ''),
                     RatingDifferance = column_ifexists('Rating_differance', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    RatingDate,
+                    Rating,
+                    CompanyName,
+                    RatingDifferance
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightGraph_data_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "GraphData",
+                    RatingDate = todatetime(column_ifexists('Rating_Date_s', '')),
+                    Rating = todouble(column_ifexists('Rating_d', '')),
+                    CompanyName = tostring(column_ifexists('Company_name_s', '')),
+                    RatingDifferance = todouble(column_ifexists('Rating_differance_d', ''))
             | project
                     TimeGenerated,
                     EventVendor,

@@ -1,15 +1,16 @@
 ﻿id: 43e914e1-3b7b-4824-bb16-90e5dedad176
 Function:
   Title: Parser for BitSightBreaches
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-10-14'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightBreaches
 FunctionAlias: BitSightBreaches
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightBreaches_data_CL
+            // 3.3.0+ table (Logs Ingestion API, plain columns)
+            BitsightBreaches_data_v3_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "Breaches",
@@ -25,6 +26,41 @@ FunctionQuery: |
                     DependentCompanies = column_ifexists('dependent_companies', ''),
                     Companyname = column_ifexists('company_name', ''),
                     CompanyGUID = column_ifexists('company_guid', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    GUID,
+                    Date,
+                    Severity,
+                    Text,
+                    DateCreated,
+                    PreviwURL,
+                    EventType,
+                    EventTypeDescription,
+                    BreachedCompanies,
+                    DependentCompanies,
+                    Companyname,
+                    CompanyGUID
+        ),
+        (
+            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
+            BitsightBreaches_data_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "Breaches",
+                    GUID = tostring(column_ifexists('guid_g', '')),
+                    Date = tostring(column_ifexists('date_s', '')),
+                    Severity = todouble(column_ifexists('Severity', '')),
+                    Text = tostring(column_ifexists('text_s', '')),
+                    DateCreated = todatetime(column_ifexists('date_created_s', '')),
+                    PreviwURL = tostring(column_ifexists('preview_url_s', '')),
+                    EventType = tostring(column_ifexists('event_type_s', '')),
+                    EventTypeDescription = tostring(column_ifexists('event_type_description_s', '')),
+                    BreachedCompanies = todynamic(column_ifexists('breached_companies_s', '')),
+                    DependentCompanies = todynamic(column_ifexists('dependent_companies_s', '')),
+                    Companyname = tostring(column_ifexists('company_name_s', '')),
+                    CompanyGUID = tostring(column_ifexists('company_guid_g', ''))
             | project
                     TimeGenerated,
                     EventVendor,

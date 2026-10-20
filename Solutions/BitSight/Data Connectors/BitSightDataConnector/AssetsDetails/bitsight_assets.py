@@ -486,8 +486,10 @@ class BitSightAssets(BitSight):
     def get_assets_page(self, url, offset, limit):
         """Fetch one page of assets.
 
-        If the page size is not known yet, the default page size is tried first and
-        the fallback page size is used if BitSight rejects it.
+        A new cycle starts with the default page size. If a request fails at any page, the same page
+        is requested again with the fallback page size, which is then used for the rest of the cycle.
+        The page size is saved in the company state, so it is also kept when the cycle is resumed in
+        the next run, and it is cleared when the cycle completes.
 
         Args:
             url (str): Assets endpoint url of the company.
@@ -496,25 +498,30 @@ class BitSightAssets(BitSight):
 
         Returns:
             tuple: Response of the API (None if the company is not accessible) and page size used.
+
+        Raises:
+            BitSightException: Raises exception if the request fails with the fallback page size.
         """
-        if limit is None:
-            try:
-                response = self.get_bitsight_data(
-                    url, {"limit": consts.ASSETS_PAGE_SIZE, "offset": offset}
+        limit = limit or consts.ASSETS_PAGE_SIZE
+        try:
+            response = self.get_bitsight_data(url, {"limit": limit, "offset": offset})
+            return response, limit
+        except BitSightException:
+            if limit <= consts.ASSETS_FALLBACK_PAGE_SIZE:
+                raise
+            applogger.warning(
+                "{} {} Request with page size {} failed at offset {}, using page size {} for the rest of "
+                "this cycle.".format(
+                    self.logs_starts_with,
+                    consts.ASSETS_FUNC_NAME,
+                    limit,
+                    offset,
+                    consts.ASSETS_FALLBACK_PAGE_SIZE,
                 )
-                return response, consts.ASSETS_PAGE_SIZE
-            except BitSightException:
-                applogger.warning(
-                    "{} {} Request with page size {} failed, retrying with page size {}.".format(
-                        self.logs_starts_with,
-                        consts.ASSETS_FUNC_NAME,
-                        consts.ASSETS_PAGE_SIZE,
-                        consts.ASSETS_FALLBACK_PAGE_SIZE,
-                    )
-                )
-                limit = consts.ASSETS_FALLBACK_PAGE_SIZE
-        response = self.get_bitsight_data(url, {"limit": limit, "offset": offset})
-        return response, limit
+            )
+            limit = consts.ASSETS_FALLBACK_PAGE_SIZE
+            response = self.get_bitsight_data(url, {"limit": limit, "offset": offset})
+            return response, limit
 
     def get_assets_details(self, company_name, company_guid):
         """Fetch assets of a specific company and post the new, updated and removed assets to Sentinel.

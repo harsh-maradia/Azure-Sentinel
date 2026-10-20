@@ -211,7 +211,7 @@
             "type": "string",
             "defaultValue": "0 */10 * * * *",
             "metadata": {
-                "description": "Please enter a valid Quartz cron-expression. (Example: 0 */30 * * * *)"
+                "description": "Please enter a valid Quartz cron-expression. (Example: 0 */10 * * * *)"
             }
         },
         "Assets_Refresh_Hours":{
