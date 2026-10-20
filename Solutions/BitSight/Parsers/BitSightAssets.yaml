@@ -1,0 +1,78 @@
+﻿id: 537f3795-80be-436e-827b-1c7b162a4177
+Function:
+  Title: Parser for BitSightAssets
+  Version: '1.0.0'
+  LastUpdated: '2026-10-08'
+Category: Microsoft Sentinel Parser
+FunctionName: BitSightAssets
+FunctionAlias: BitSightAssets
+FunctionQuery: |
+    union isfuzzy=true
+        (
+            BitsightAssets_data_CL
+            | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "Assets",
+                    TemporaryId = column_ifexists('temporary_id', ''),
+                    Asset = column_ifexists('asset', ''),
+                    AssetType = column_ifexists('asset_type', ''),
+                    Identifier = column_ifexists('identifier', ''),
+                    AppGrade = column_ifexists('app_grade', ''),
+                    IPAddresses = column_ifexists('ip_addresses', ''),
+                    CountryCode = column_ifexists('country_code', ''),
+                    Country = column_ifexists('country', ''),
+                    HostedBy = column_ifexists('hosted_by', ''),
+                    Importance = column_ifexists('importance', ''),
+                    ImportanceCategory = column_ifexists('importance_category', ''),
+                    Longitude = column_ifexists('longitude', ''),
+                    Latitude = column_ifexists('latitude', ''),
+                    IsIP = column_ifexists('is_ip', ''),
+                    Services = column_ifexists('services', ''),
+                    OriginSubsidiary = column_ifexists('origin_subsidiary', ''),
+                    Findings = column_ifexists('findings', ''),
+                    Threats = column_ifexists('threats', ''),
+                    Tags = column_ifexists('tags', ''),
+                    TagDetails = column_ifexists('tag_details', ''),
+                    Overrides = column_ifexists('overrides', ''),
+                    CombinedOverrides = column_ifexists('combined_overrides', ''),
+                    Products = column_ifexists('products', ''),
+                    IsMonitored = column_ifexists('is_monitored', ''),
+                    CompanyName = column_ifexists('company_name', ''),
+                    CompanyGUID = column_ifexists('company_guid', ''),
+                    AssetKey = column_ifexists('asset_key', ''),
+                    ContentHash = column_ifexists('content_hash', ''),
+                    ChangeType = column_ifexists('change_type', '')
+            | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    TemporaryId,
+                    Asset,
+                    AssetType,
+                    Identifier,
+                    AppGrade,
+                    IPAddresses,
+                    CountryCode,
+                    Country,
+                    HostedBy,
+                    Importance,
+                    ImportanceCategory,
+                    Longitude,
+                    Latitude,
+                    IsIP,
+                    Services,
+                    OriginSubsidiary,
+                    Findings,
+                    Threats,
+                    Tags,
+                    TagDetails,
+                    Overrides,
+                    CombinedOverrides,
+                    Products,
+                    IsMonitored,
+                    CompanyName,
+                    CompanyGUID,
+                    AssetKey,
+                    ContentHash,
+                    ChangeType
+        )

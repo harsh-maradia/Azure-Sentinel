@@ -85,3 +85,49 @@ class CheckpointManager:
         except Exception as e:
             applogger.error(f"Error setting checkpoint: {e}")
             raise BitSightException(f"Error setting checkpoint: {e}")
+
+    def get_checkpoints_by_prefix(self, partition_key: str, prefix: str) -> dict:
+        """
+        Gets the checkpoint values of all the rows whose row key starts with the given prefix.
+
+        Args:
+            partition_key (str): Partition key.
+            prefix (str): Row key prefix.
+
+        Returns:
+            dict: Row key to checkpoint value, empty if no row is found.
+
+        Raises:
+            BitSightException: Raised if there is an error getting the checkpoints.
+        """
+        try:
+            applogger.debug(f"Getting checkpoints with row key prefix {prefix}")
+            upper_bound = prefix[:-1] + chr(ord(prefix[-1]) + 1)
+            entities = self.table_client.query_entities(
+                query_filter="PartitionKey eq @partition_key and RowKey ge @lower and RowKey lt @upper",
+                parameters={"partition_key": partition_key, "lower": prefix, "upper": upper_bound},
+            )
+            return {entity["RowKey"]: entity.get("Value") for entity in entities}
+        except Exception as e:
+            applogger.error(f"Error getting checkpoints by prefix: {e}")
+            raise BitSightException(f"Error getting checkpoints by prefix: {e}")
+
+    def delete_checkpoint(self, partition_key: str, row_key: str) -> None:
+        """
+        Deletes the checkpoint of a given partition key and row key.
+
+        Args:
+            partition_key (str): Partition key.
+            row_key (str): Row key.
+
+        Raises:
+            BitSightException: Raised if there is an error deleting the checkpoint.
+        """
+        try:
+            applogger.debug("Deleting checkpoint")
+            self.table_client.delete_entity(partition_key=partition_key, row_key=row_key)
+        except ResourceNotFoundError:
+            applogger.debug("Checkpoint to delete not found")
+        except Exception as e:
+            applogger.error(f"Error deleting checkpoint: {e}")
+            raise BitSightException(f"Error deleting checkpoint: {e}")

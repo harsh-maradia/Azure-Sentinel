@@ -2,11 +2,593 @@
   "version": "Notebook/1.0",
   "items": [
     {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "df9ebd46-967c-445f-9328-d3538237ba3b",
+            "version": "KqlParameterItem/1.0",
+            "name": "company",
+            "label": "Company Name",
+            "type": 2,
+            "isRequired": true,
+            "query": "BitSightCompanyDetails\r\n| distinct Name",
+            "typeSettings": {
+              "additionalResourceOptions": [],
+              "showDefault": false
+            },
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces",
+            "value": "Amazon.com, Inc."
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "20",
+      "name": "parameters - 1"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "ae71f2b2-2245-4937-827e-20960f9ae3b8",
+            "version": "KqlParameterItem/1.0",
+            "name": "Timer",
+            "label": "Time Range",
+            "type": 4,
+            "isRequired": true,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 300000
+                },
+                {
+                  "durationMs": 900000
+                },
+                {
+                  "durationMs": 1800000
+                },
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "timeContext": {
+              "durationMs": 86400000
+            },
+            "value": {
+              "durationMs": 7776000000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "customWidth": "20",
+      "name": "parameters - 0"
+    },
+    {
       "type": 12,
       "content": {
         "version": "NotebookGroup/1.0",
         "groupType": "editable",
         "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "c6fc3234-14d2-4000-b754-2291400c7aad",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "selectedParentTab",
+                  "type": 1,
+                  "value": "overview_bs",
+                  "isHiddenWhenLocked": true
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parent-tabs - parameter"
+          },
+          {
+            "type": 11,
+            "content": {
+              "version": "LinkItem/1.0",
+              "style": "tabs",
+              "links": [
+                {
+                  "id": "3c626bfc-496d-43dd-a6a2-6640c233ace9",
+                  "cellValue": "selectedParentTab",
+                  "linkTarget": "parameter",
+                  "linkLabel": "BitSight Overview",
+                  "subTarget": "overview_bs",
+                  "style": "link"
+                },
+                {
+                  "id": "0d848230-7983-4ca6-b98c-fee6e8538240",
+                  "cellValue": "selectedParentTab",
+                  "linkTarget": "parameter",
+                  "linkLabel": "Risk Vectors",
+                  "subTarget": "risk_vectors",
+                  "style": "link"
+                },
+                {
+                  "id": "934dc539-e6d7-444e-b44e-03e8db09513c",
+                  "cellValue": "selectedParentTab",
+                  "linkTarget": "parameter",
+                  "linkLabel": "Assets",
+                  "subTarget": "assets",
+                  "style": "link"
+                }
+              ]
+            },
+            "name": "parent-tabs - selector"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "---"
+            },
+            "name": "parent-tabs-divider"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "# My Company"
+                        },
+                        "name": "text - 2"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "let ratings =\n    BitSightGraphData\n    | where todatetime(RatingDate) {Timer} and CompanyName == '{company}'\n    | summarize High = max(Rating),\n                Low  = min(Rating),\n                arg_max(RatingDate, Rating)\n             by CompanyName\n    | project CompanyName,\n              [\"Latest Rating\"] = toint(Rating),\n              High = toint(High),\n              Low  = toint(Low);\nBitSightCompanyDetails\n| where Name == '{company}'\n| top 1 by TimeGenerated desc\n| extend CompanyName = Name\n| join kind=leftouter ratings on CompanyName\n| project Name,\n          [\"Latest Rating\"],\n          High,\n          Low,\n          Industry,\n          [\"Customer Monitoring Count\"] = CustomerMonitoringCount\n",
+                          "size": 4,
+                          "timeContext": {
+                            "durationMs": 2592000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces"
+                        },
+                        "name": "query - 3",
+                        "styleSettings": {
+                          "margin": "0px",
+                          "padding": "0px"
+                        }
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightGraphData\r\n| where CompanyName == '{company}'\r\n| extend RatingDate = startofday(todatetime(RatingDate))\r\n| summarize arg_max(TimeGenerated, Rating) by RatingDate\r\n| order by RatingDate asc\r\n| serialize\r\n| extend PreviousRating = prev(Rating), Change = Rating - prev(Rating)\r\n| where Change != 0\r\n| project RatingDate, PreviousRating, NewRating = Rating, Change,\r\n          Direction = iff(Change > 0, \"▲ Increase\", \"▼ Decrease\")\r\n| order by RatingDate desc",
+                          "size": 0,
+                          "aggregation": 4,
+                          "title": "Security Ratings Over Time",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "linechart",
+                          "chartSettings": {
+                            "xAxis": "RatingDate",
+                            "group": null,
+                            "createOtherGroup": 0,
+                            "showDataPoints": true,
+                            "ySettings": {
+                              "min": 300,
+                              "max": 850
+                            }
+                          }
+                        },
+                        "name": "query - 4"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}'\r\n| summarize count() by RiskVectorLabel\r\n| order by count_ desc",
+                          "size": 0,
+                          "title": "Count of Observations by Risk Vector",
+                          "exportFieldName": "x",
+                          "exportParameterName": "SelectedRiskVectorLabel",
+                          "exportDefaultValue": "none",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "categoricalbar",
+                          "chartSettings": {
+                            "xAxis": "RiskVectorLabel",
+                            "createOtherGroup": 0,
+                            "showLegend": true
+                          }
+                        },
+                        "name": "query - 5"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}'\r\n| where RiskVectorLabel == '{SelectedRiskVectorLabel}'\r\n| project-away EventVendor, EventProduct",
+                          "size": 0,
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "gridSettings": {
+                            "rowLimit": 10000,
+                            "sortBy": [
+                              {
+                                "itemKey": "RemediationHistoryLastRefreshStatusDate",
+                                "sortOrder": 2
+                              }
+                            ]
+                          },
+                          "sortBy": [
+                            {
+                              "itemKey": "RemediationHistoryLastRefreshStatusDate",
+                              "sortOrder": 2
+                            }
+                          ]
+                        },
+                        "conditionalVisibility": {
+                          "parameterName": "SelectedRiskVectorLabel",
+                          "comparison": "isNotEqualTo",
+                          "value": "none"
+                        },
+                        "name": "query - 16"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Compromised Systems\"\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
+                          "size": 0,
+                          "aggregation": 4,
+                          "title": "Compromised Systems by Risk Vector Over Time",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "linechart",
+                          "graphSettings": {
+                            "type": 0,
+                            "topContent": {
+                              "columnMatch": "Date",
+                              "formatter": 1
+                            },
+                            "centerContent": {
+                              "columnMatch": "count_",
+                              "formatter": 1,
+                              "numberFormat": {
+                                "unit": 17,
+                                "options": {
+                                  "maximumSignificantDigits": 3,
+                                  "maximumFractionDigits": 2
+                                }
+                              }
+                            }
+                          },
+                          "chartSettings": {
+                            "xAxis": "Date",
+                            "yAxis": [
+                              "count_"
+                            ],
+                            "group": "RiskVectorLabel",
+                            "createOtherGroup": null,
+                            "showDataPoints": true
+                          }
+                        },
+                        "name": "query - 6"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"User Behavior\"\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
+                          "size": 0,
+                          "aggregation": 4,
+                          "title": "User Behavior by Risk Vector Over Time",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "linechart",
+                          "chartSettings": {
+                            "xAxis": "Date",
+                            "yAxis": [
+                              "count_"
+                            ],
+                            "group": "RiskVectorLabel",
+                            "createOtherGroup": null
+                          }
+                        },
+                        "name": "query - 15"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "##### Diligence by Risk Vector Over Time"
+                        },
+                        "name": "text - 13"
+                      },
+                      {
+                        "type": 9,
+                        "content": {
+                          "version": "KqlParameterItem/1.0",
+                          "parameters": [
+                            {
+                              "id": "4d26ba1c-db98-437a-9a0c-63126f341afb",
+                              "version": "KqlParameterItem/1.0",
+                              "name": "Risk_Vector",
+                              "label": "Risk Vector",
+                              "type": 2,
+                              "isRequired": true,
+                              "multiSelect": true,
+                              "quote": "'",
+                              "delimiter": ",",
+                              "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Diligence\"\r\n| distinct RiskVectorLabel\r\n",
+                              "typeSettings": {
+                                "additionalResourceOptions": [
+                                  "value::all"
+                                ],
+                                "selectAllValue": "*",
+                                "showDefault": false
+                              },
+                              "queryType": 0,
+                              "resourceType": "microsoft.operationalinsights/workspaces",
+                              "value": null
+                            }
+                          ],
+                          "style": "pills",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces"
+                        },
+                        "name": "parameters - 12"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Diligence\" and ('*' in ({Risk_Vector}) or RiskVectorLabel in ({Risk_Vector}))\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
+                          "size": 0,
+                          "aggregation": 4,
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "linechart",
+                          "tileSettings": {
+                            "showBorder": false,
+                            "titleContent": {
+                              "columnMatch": "Date",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "count_",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              },
+                              "numberFormat": {
+                                "unit": 17,
+                                "options": {
+                                  "maximumSignificantDigits": 3,
+                                  "maximumFractionDigits": 2
+                                }
+                              }
+                            }
+                          },
+                          "chartSettings": {
+                            "xAxis": "Date",
+                            "yAxis": [
+                              "count_"
+                            ],
+                            "group": "RiskVectorLabel",
+                            "createOtherGroup": 0,
+                            "showDataPoints": true
+                          }
+                        },
+                        "name": "query - 14"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightDiligenceHistoricalStatistics\r\n| where todatetime(Date) {Timer} and CompanyName == '{company}'\r\n| extend yyyy_mm = format_datetime(todatetime(Date), 'yyyy-MM')\r\n| summarize round(avg(Count),2) by yyyy_mm, Category\r\n| project Category, avg_Count, yyyy_mm = strcat(yyyy_mm,\" (Avg)\")\r\n| order by yyyy_mm asc, Category asc\r\n| limit 15",
+                          "size": 0,
+                          "aggregation": 4,
+                          "title": "Diligence Observations by Severity",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "unstackedbar",
+                          "sortBy": [],
+                          "chartSettings": {
+                            "xAxis": "yyyy_mm",
+                            "yAxis": [
+                              "avg_Count"
+                            ],
+                            "group": "Category",
+                            "createOtherGroup": null
+                          }
+                        },
+                        "name": "query - 8"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Compromised Systems\" and RiskVectorLabel == \"Botnet Infections\"\r\n| extend d=parse_json(Details) \r\n| mv-expand asset = todynamic(Assets)\r\n| project Infection = dynamic_to_json(d[0].infection.family), [\"Detection Method\"] = dynamic_to_json(d[0].detection_method), [\"Last Seen\"] = column_ifexists(\"LastSeen\",\"\"), Asset = dynamic_to_json(asset.asset)\r\n| distinct Infection, [\"Detection Method\"], Asset, [\"Last Seen\"]\r\n| order by [\"Last Seen\"] desc",
+                          "size": 0,
+                          "title": "Infections",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "gridSettings": {
+                            "rowLimit": 10000,
+                            "filter": true
+                          },
+                          "sortBy": []
+                        },
+                        "name": "query - 7"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "##### Vulnerabilities"
+                        },
+                        "name": "text - 11"
+                      },
+                      {
+                        "type": 9,
+                        "content": {
+                          "version": "KqlParameterItem/1.0",
+                          "parameters": [
+                            {
+                              "id": "c7ff4374-c346-4c43-9354-8936687c2704",
+                              "version": "KqlParameterItem/1.0",
+                              "name": "Severity",
+                              "type": 2,
+                              "isRequired": true,
+                              "multiSelect": true,
+                              "quote": "'",
+                              "delimiter": ",",
+                              "query": "BitSightFindingsSummary\r\n| where todatetime(StartDate) {Timer} and Company == '{company}'\r\n| extend Filter = case(toreal(Severity) <= 3.9 and toreal(Severity) >= 0.0, \"Minor\", \r\n                       toreal(Severity) <= 6.9 and toreal(Severity) >= 4.0, \"Moderate\",\r\n                       toreal(Severity) <= 8.9 and toreal(Severity) >= 7.0, \"Material\",\r\n                       toreal(Severity) <= 10.0 and toreal(Severity) >= 9.0, \"Severe\",\r\n                       \"\")\r\n| distinct Filter",
+                              "typeSettings": {
+                                "additionalResourceOptions": [
+                                  "value::all"
+                                ],
+                                "selectAllValue": "*",
+                                "showDefault": false
+                              },
+                              "queryType": 0,
+                              "resourceType": "microsoft.operationalinsights/workspaces",
+                              "value": null
+                            }
+                          ],
+                          "style": "pills",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces"
+                        },
+                        "name": "parameters - 10"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsSummary\r\n| where todatetime(StartDate) {Timer} and Company == '{company}'\r\n| distinct Name, Severity, StartDate, EndDate, Description\r\n| extend [\"Severity Details\"] = case(toreal(Severity) <= 3.9 and toreal(Severity) >= 0.0, \"Minor\", \r\n                       toreal(Severity) <= 6.9 and toreal(Severity) >= 4.0, \"Moderate\",\r\n                       toreal(Severity) <= 8.9 and toreal(Severity) >= 7.0, \"Material\",\r\n                       toreal(Severity) <= 10.0 and toreal(Severity) >= 9.0, \"Severe\",\r\n                       \"\")\r\n| where ('*' in ({Severity}) or [\"Severity Details\"] in ({Severity}))\r\n| project-rename Name = Name, [\"Start Date\"] = StartDate, [\"End Date\"] = EndDate\r\n| project Name, [\"Severity Details\"], [\"Start Date\"], [\"End Date\"], Description\r\n",
+                          "size": 0,
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "gridSettings": {
+                            "formatters": [
+                              {
+                                "columnMatch": "Severity Details",
+                                "formatter": 11,
+                                "formatOptions": {
+                                  "thresholdsOptions": "colors",
+                                  "thresholdsGrid": [
+                                    {
+                                      "operator": "==",
+                                      "thresholdValue": "Severe",
+                                      "representation": "redBright",
+                                      "text": "{0}{1}"
+                                    },
+                                    {
+                                      "operator": "==",
+                                      "thresholdValue": "Material",
+                                      "representation": "orange",
+                                      "text": "{0}{1}"
+                                    },
+                                    {
+                                      "operator": "==",
+                                      "thresholdValue": "Moderate",
+                                      "representation": "yellow",
+                                      "text": "{0}{1}"
+                                    },
+                                    {
+                                      "operator": "==",
+                                      "thresholdValue": "Minor",
+                                      "representation": "green",
+                                      "text": "{0}{1}"
+                                    },
+                                    {
+                                      "operator": "Default",
+                                      "representation": "transparent",
+                                      "text": "{0}{1}"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "columnMatch": "Description",
+                                "formatter": 1,
+                                "formatOptions": {
+                                  "customColumnWidthSetting": "40ch"
+                                }
+                              }
+                            ],
+                            "rowLimit": 10000,
+                            "filter": true
+                          }
+                        },
+                        "name": "query - 9"
+                      }
+                    ]
+                  },
+                  "name": "My Company"
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "selectedParentTab",
+              "comparison": "isEqualTo",
+              "value": "overview_bs"
+            },
+            "name": "parent-tab-overview_bs"
+          },
           {
             "type": 12,
             "content": {
@@ -16,490 +598,2515 @@
                 {
                   "type": 1,
                   "content": {
-                    "json": "# My Company"
+                    "json": "# Risk Vectors Overview\n\n## About Risk Vectors and Categories\n\nBy understanding how risk vectors, categories and this page works, it can be used to prioritize resources and maximize positive impact on the rating. Remediation efforts should be aligned with risk categories and associated vectors that contribute the most to the security rating.\n\n**Bitsight Security Ratings** are generated and calculated daily, using a proprietary algorithm that evaluates an organization's security effectiveness. The graphic on the right depicts the top risk vectors, along with their associated weight percentage on your Bitsight Rating."
                   },
-                  "name": "text - 2"
-                },
-                {
-                  "type": 9,
-                  "content": {
-                    "version": "KqlParameterItem/1.0",
-                    "parameters": [
-                      {
-                        "id": "df9ebd46-967c-445f-9328-d3538237ba3b",
-                        "version": "KqlParameterItem/1.0",
-                        "name": "company",
-                        "label": "Company Name",
-                        "type": 2,
-                        "isRequired": true,
-                        "query": "BitSightCompanyDetails\r\n| distinct Name",
-                        "typeSettings": {
-                          "additionalResourceOptions": [],
-                          "showDefault": false
-                        },
-                        "queryType": 0,
-                        "resourceType": "microsoft.operationalinsights/workspaces",
-                        "value": "Kati Communications, Inc."
-                      }
-                    ],
-                    "style": "pills",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces"
-                  },
-                  "customWidth": "0",
-                  "name": "parameters - 1"
-                },
-                {
-                  "type": 9,
-                  "content": {
-                    "version": "KqlParameterItem/1.0",
-                    "parameters": [
-                      {
-                        "id": "ae71f2b2-2245-4937-827e-20960f9ae3b8",
-                        "version": "KqlParameterItem/1.0",
-                        "name": "Timer",
-                        "label": "Time Range",
-                        "type": 4,
-                        "isRequired": true,
-                        "typeSettings": {
-                          "selectableValues": [
-                            {
-                              "durationMs": 300000
-                            },
-                            {
-                              "durationMs": 900000
-                            },
-                            {
-                              "durationMs": 1800000
-                            },
-                            {
-                              "durationMs": 3600000
-                            },
-                            {
-                              "durationMs": 14400000
-                            },
-                            {
-                              "durationMs": 43200000
-                            },
-                            {
-                              "durationMs": 86400000
-                            },
-                            {
-                              "durationMs": 172800000
-                            },
-                            {
-                              "durationMs": 259200000
-                            },
-                            {
-                              "durationMs": 604800000
-                            },
-                            {
-                              "durationMs": 1209600000
-                            },
-                            {
-                              "durationMs": 2419200000
-                            },
-                            {
-                              "durationMs": 2592000000
-                            },
-                            {
-                              "durationMs": 5184000000
-                            },
-                            {
-                              "durationMs": 7776000000
-                            }
-                          ],
-                          "allowCustom": true
-                        },
-                        "timeContext": {
-                          "durationMs": 86400000
-                        },
-                        "value": {
-                          "durationMs": 604800000
-                        }
-                      }
-                    ],
-                    "style": "pills",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces"
-                  },
-                  "customWidth": "0",
-                  "name": "parameters - 0"
+                  "name": "ov-header"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "let latest_Rating = toscalar(BitSightGraphData\r\n| where todatetime(RatingDate) {Timer} and CompanyName == '{company}'\r\n| distinct CompanyName, RatingDate, Rating\r\n| summarize High = max(Rating), Low = min(Rating), any(RatingDate, Rating)\r\n| order by any_RatingDate desc\r\n| project strcat_delim(\"-\",any_Rating, High, Low)\r\n| limit 1);\r\nBitSightCompanyDetails\r\n| where Name == '{company}'\r\n| sort by TimeGenerated\r\n| extend LatestRating = toint(todecimal(split(latest_Rating, \"-\")[0])), High = toint(todecimal(split(latest_Rating, \"-\")[1])), Low = toint(todecimal(split(latest_Rating, \"-\")[2]))\r\n| project-rename Name = Name, Subscription = SubscriptionType , Industry = Industry, [\"Customer Monitoring Count\"] = CustomerMonitoringCount, [\"Latest Rating\"] = LatestRating\r\n| project Name, [\"Latest Rating\"], High, Low, Industry, [\"Customer Monitoring Count\"]\r\n| limit 1",
-                    "size": 4,
-                    "timeContext": {
-                      "durationMs": 2592000000
-                    },
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces"
-                  },
-                  "name": "query - 3",
-                  "styleSettings": {
-                    "margin": "0px",
-                    "padding": "0px"
-                  }
-                },
-                {
-                  "type": 3,
-                  "content": {
-                    "version": "KqlItem/1.0",
-                    "query": "BitSightGraphData\r\n| where todatetime(RatingDate) {Timer} and CompanyName == '{company}'\r\n| distinct CompanyName, RatingDate, Rating\r\n| project CompanyName, RatingDate, Rating\r\n| order by RatingDate asc",
+                    "query": "datatable(RiskVector:string, WeightPct:real) [\n  'Compromised Systems', 26.0, 'Critical Vulnerability Management', 20.0,\n  'SSL Configurations', 15.0, 'SSL Certificates', 10.0,\n  'Open Ports', 10.0, 'Web Application Security', 5.0,\n  'Desktop Software', 3.0, 'File Sharing', 2.5,\n  'Insecure Systems', 2.5, 'Server Software', 2.0, 'Others', 4.0\n] | order by WeightPct desc",
                     "size": 0,
-                    "aggregation": 4,
-                    "title": "Security Ratings Over Time",
+                    "title": "BitSight rating-model weighting (policy / static)",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
-                    "visualization": "linechart",
-                    "chartSettings": {
-                      "xAxis": "RatingDate",
-                      "group": null,
-                      "createOtherGroup": 0,
-                      "showDataPoints": true,
-                      "ySettings": {
-                        "min": 300,
-                        "max": 850
-                      }
-                    }
+                    "visualization": "piechart"
                   },
-                  "name": "query - 4",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
+                  "customWidth": "50",
+                  "name": "ov-policy-weights"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}'\r\n| summarize count() by RiskVectorLabel\r\n| order by count_ desc",
+                    "query": "BitSightFindingsData\n| where isnotempty(RiskCategory)\n| summarize Records = count() by RiskCategory\n| order by Records desc",
                     "size": 0,
-                    "title": "Count of Observations by Risk Vector",
-                    "exportFieldName": "x",
-                    "exportParameterName": "SelectedRiskVectorLabel",
-                    "exportDefaultValue": "none",
+                    "title": "Observed finding distribution (dynamic / your data)",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
-                    "visualization": "categoricalbar",
-                    "chartSettings": {
-                      "xAxis": "RiskVectorLabel",
-                      "createOtherGroup": 0,
-                      "showLegend": true
-                    }
+                    "visualization": "piechart"
                   },
-                  "name": "query - 5",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
+                  "customWidth": "50",
+                  "name": "ov-observed-dist"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "> **Why two charts?** The pie on the left is BitSight's **fixed policy** for how each risk vector contributes to the Security Rating — these values do not change based on your data. The pie on the right shows the **actual distribution of findings** currently ingested into this Sentinel workspace. The two will usually look different, and that is expected."
+                  },
+                  "name": "ov-weights-note"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "#### Rating Overview\n\nRating Overview Panel shows how well this company is managing each risk vector. Click on a risk vector to see more details about the risk."
+                  },
+                  "name": "ov-rating-text"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}'\r\n| where RiskVectorLabel == '{SelectedRiskVectorLabel}'\r\n| project-away EventVendor, EventProduct",
+                    "query": "BitSightFindingsData\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(RiskCategory)\n| summarize Records=count(), Good=countif(Grade=='GOOD'),\n            Fair=countif(Grade=='FAIR'), Warn=countif(Grade=='WARN'),\n            Bad=countif(Grade=='BAD'), Neutral=countif(Grade=='NEUTRAL')\n            by RiskCategory, RiskVectorLabel\n| order by RiskCategory asc, RiskVectorLabel asc",
                     "size": 0,
+                    "title": "Risk vectors — current record counts by grade",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "table",
                     "gridSettings": {
-                      "rowLimit": 10000,
-                      "sortBy": [
+                      "formatters": [
                         {
-                          "itemKey": "RemediationHistoryLastRefreshStatusDate",
-                          "sortOrder": 2
+                          "columnMatch": "RiskCategory",
+                          "formatter": 1
+                        },
+                        {
+                          "columnMatch": "RiskVectorLabel",
+                          "formatter": 1
+                        },
+                        {
+                          "columnMatch": "Records",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "blue",
+                            "aggregation": "Sum"
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        },
+                        {
+                          "columnMatch": "Good",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "green",
+                            "aggregation": "Sum",
+                            "compositeBarSettings": {
+                              "labelText": ""
+                            }
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        },
+                        {
+                          "columnMatch": "Fair",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "yellow",
+                            "aggregation": "Sum",
+                            "compositeBarSettings": {
+                              "labelText": ""
+                            }
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        },
+                        {
+                          "columnMatch": "Warn",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "orange",
+                            "aggregation": "Sum",
+                            "compositeBarSettings": {
+                              "labelText": ""
+                            }
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        },
+                        {
+                          "columnMatch": "Bad",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "redBright",
+                            "aggregation": "Sum",
+                            "compositeBarSettings": {
+                              "labelText": ""
+                            }
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        },
+                        {
+                          "columnMatch": "Neutral",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "gray",
+                            "aggregation": "Sum",
+                            "compositeBarSettings": {
+                              "labelText": ""
+                            }
+                          },
+                          "numberFormat": {
+                            "unit": 17,
+                            "options": {
+                              "style": "decimal",
+                              "maximumFractionDigits": 0
+                            }
+                          }
+                        }
+                      ],
+                      "rowLimit": 1000,
+                      "labelSettings": [
+                        {
+                          "columnId": "RiskCategory",
+                          "label": "Risk Category"
+                        },
+                        {
+                          "columnId": "RiskVectorLabel",
+                          "label": "Risk Vector"
                         }
                       ]
-                    },
-                    "sortBy": [
+                    }
+                  },
+                  "name": "ov-category-summary"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "---\n<small>\\* Risk Vector does not currently affect Security Ratings</small>  \n<small>\\** Informational risk vector (will never affect Security Ratings)</small>"
+                  },
+                  "name": "ov-footnotes"
+                },
+                {
+                  "type": 9,
+                  "content": {
+                    "version": "KqlParameterItem/1.0",
+                    "parameters": [
                       {
-                        "itemKey": "RemediationHistoryLastRefreshStatusDate",
-                        "sortOrder": 2
+                        "id": "ee0c5dd7-0675-418b-80c9-766a283f86e7",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "selectedSubTab",
+                        "type": 1,
+                        "value": "compromised",
+                        "isHiddenWhenLocked": true
+                      }
+                    ],
+                    "style": "pills",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces"
+                  },
+                  "name": "sub-tabs - parameter"
+                },
+                {
+                  "type": 11,
+                  "content": {
+                    "version": "LinkItem/1.0",
+                    "style": "tabs",
+                    "links": [
+                      {
+                        "id": "c66dff21-8874-4e09-b248-42e23fb9af35",
+                        "cellValue": "selectedSubTab",
+                        "linkTarget": "parameter",
+                        "linkLabel": "Compromised Systems",
+                        "subTarget": "compromised",
+                        "style": "link"
+                      },
+                      {
+                        "id": "8a025944-ff20-41ef-9f19-2cb72152c0d1",
+                        "cellValue": "selectedSubTab",
+                        "linkTarget": "parameter",
+                        "linkLabel": "Diligence",
+                        "subTarget": "diligence",
+                        "style": "link"
+                      },
+                      {
+                        "id": "74757cb7-bbca-4e20-9100-47c78a6fc0d3",
+                        "cellValue": "selectedSubTab",
+                        "linkTarget": "parameter",
+                        "linkLabel": "User Behavior",
+                        "subTarget": "user_behavior",
+                        "style": "link"
+                      },
+                      {
+                        "id": "b99679df-e1d8-4e3c-af3a-736f4ef5e627",
+                        "cellValue": "selectedSubTab",
+                        "linkTarget": "parameter",
+                        "linkLabel": "Public Disclosures",
+                        "subTarget": "public_disc",
+                        "style": "link"
+                      }
+                    ]
+                  },
+                  "name": "sub-tabs - selector"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "---"
+                  },
+                  "name": "sub-tabs-divider"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "# Compromised Systems\n\n**Total weight:** 26%\n\nCompromised Systems are devices or machines in an organization's network that show symptoms of malicious or unwanted software. These compromises can disrupt daily business operations and can increase an organization's risk of breach.\n\nCompromised Systems are evaluated based on the number and type of malware, the severity, and the duration. For each risk vector, an overall letter grade is calculated from evaluations of each instance of compromise.\n\nFor example, an organization could have an \"F\" for botnet infections, if they either had many botnets in a short period, or a few persistent botnets over months."
+                        },
+                        "name": "cat-header-compromised-systems"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskCategory == 'Compromised Systems'\n| summarize ['Number of Events'] = count() by bin(TimeGenerated, 30d), RiskVectorLabel\n| order by TimeGenerated asc",
+                          "size": 0,
+                          "title": "Events over 12 months",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "name": "cs-composite-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-composite-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Botnet Infections\n\n**Weight:** Up to 26%\n\nBotnet Infection events indicate that devices on a company's network were observed participating in botnets as either bots or Command and Control servers. Botnets can be used to exfiltrate corporate secrets and sensitive customer information, repurpose company resources for illegal activities, and serve as conduits for other infections."
+                        },
+                        "customWidth": "40",
+                        "name": "cs-botnet-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Botnet Infections'\n| summarize ['Events'] = count() by bin(TimeGenerated, 1d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Botnet Infections — Event Counts over past year",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "cs-botnet-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Botnet Infections'\n| summarize ['Total Events'] = count(),\n            ['First Seen'] = min(TimeGenerated),\n            ['Last Seen']  = max(TimeGenerated)",
+                          "size": 4,
+                          "title": "Botnet Infections — Summary",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Events",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "redBright"
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Last Seen",
+                              "formatter": 6
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "cs-botnet-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-botnet-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Spam Propagation\n\n**Weight:** Up to 26%\n\nSpam Propagation events are observed when devices on a company's network are sending unsolicited commercial or bulk email. This type of activity can damage a company's reputation and cause legitimate company email to be caught in spam filters."
+                        },
+                        "customWidth": "40",
+                        "name": "cs-spam-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Spam Propagation'\n| summarize ['Events'] = count() by bin(TimeGenerated, 1d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Spam Propagation — Event Counts over past year",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "cs-spam-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Spam Propagation'\n| summarize ['Total Events'] = count(),\n            ['First Seen'] = min(TimeGenerated),\n            ['Last Seen']  = max(TimeGenerated)",
+                          "size": 4,
+                          "title": "Spam Propagation — Summary",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Events",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "redBright"
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Last Seen",
+                              "formatter": 6
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "cs-spam-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-spam-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Malware Servers\n\n**Weight:** Up to 26%\n\nMalware Server events occur when servers are observed engaging in malicious activity, such as hosting phishing, fraud or scam sites. Compromised servers can put employees and customers at risk by infecting devices that connect to company resources."
+                        },
+                        "customWidth": "40",
+                        "name": "cs-malware-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Malware Servers'\n| summarize ['Events'] = count() by bin(TimeGenerated, 1d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Malware Servers — Event Counts over past year",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "cs-malware-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Malware Servers'\n| summarize ['Total Events'] = count(),\n            ['First Seen'] = min(TimeGenerated),\n            ['Last Seen']  = max(TimeGenerated)",
+                          "size": 4,
+                          "title": "Malware Servers — Summary",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Events",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "redBright"
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Last Seen",
+                              "formatter": 6
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "cs-malware-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-malware-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Unsolicited Communications\n\n**Weight:** Up to 26%\n\nUnsolicited Communications events occur when devices attempt to communicate with servers that are not hosting any useful services. This type of activity not only shows that a device is compromised, but that it is actively seeking other devices to infect."
+                        },
+                        "customWidth": "40",
+                        "name": "cs-unsolicited-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Unsolicited Communications'\n| summarize ['Events'] = count() by bin(TimeGenerated, 1d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Unsolicited Communications — Event Counts over past year",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "cs-unsolicited-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Unsolicited Communications'\n| summarize ['Total Events'] = count(),\n            ['First Seen'] = min(TimeGenerated),\n            ['Last Seen']  = max(TimeGenerated)",
+                          "size": 4,
+                          "title": "Unsolicited Communications — Summary",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Events",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "redBright"
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Last Seen",
+                              "formatter": 6
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "cs-unsolicited-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-unsolicited-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Potentially Exploited\n\n**Weight:** Up to 26%\n\nPotentially Exploited events occur when browsers on a company's network are infected with malware that is altering the user's experience, such as adware. These events are often indicative of other infections."
+                        },
+                        "customWidth": "40",
+                        "name": "cs-exploited-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Potentially Exploited'\n| summarize ['Events'] = count() by bin(TimeGenerated, 1d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Potentially Exploited — Event Counts over past year",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "cs-exploited-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Potentially Exploited'\n| summarize ['Total Events'] = count(),\n            ['First Seen'] = min(TimeGenerated),\n            ['Last Seen']  = max(TimeGenerated)",
+                          "size": 4,
+                          "title": "Potentially Exploited — Summary",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Events",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "redBright"
+                              }
+                            },
+                            "leftContent": {
+                              "columnMatch": "Last Seen",
+                              "formatter": 6
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "cs-exploited-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "cs-exploited-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---\n<small>\\* Risk Vector does not currently affect Security Ratings</small>  \n<small>\\** Informational risk vector (will never affect Security Ratings)</small>"
+                        },
+                        "name": "cs-footnotes"
                       }
                     ]
                   },
                   "conditionalVisibility": {
-                    "parameterName": "SelectedRiskVectorLabel",
-                    "comparison": "isNotEqualTo",
-                    "value": "none"
+                    "parameterName": "selectedSubTab",
+                    "comparison": "isEqualTo",
+                    "value": "compromised"
                   },
-                  "name": "query - 16",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
+                  "name": "sub-tab-compromised"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "# Diligence\n\n**Total weight:** 71.5%\n\nDiligence risk vectors show steps a company has taken to prevent attacks. Bitsight currently evaluates SPF, DKIM, TLS/SSL, Open Port and DNSSEC information in assessing a company's security diligence.\n\nAll diligence records are evaluated as one of the following: Good, Fair, Warn, Bad or Neutral. Records are assessed using industry-standard criteria. For each diligence risk vector, an overall letter grade is calculated using the evaluations of each individual record.\n\nFor example, if a company has three domains, and each of them has an effective SPF record, their overall SPF grade would be an \"A\". Likewise, if none of the three domains have SPF records, their overall SPF grade would be an \"F\"."
+                        },
+                        "name": "cat-header-diligence"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskCategory == 'Diligence'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by bin(TimeGenerated, 30d), Grade\n| order by TimeGenerated asc",
+                          "size": 0,
+                          "title": "All Diligence Risk Vectors — Record distribution",
+                          "timeContext": {
+                            "durationMs": 15552000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "areachart",
+                          "chartSettings": {
+                            "xAxis": "TimeGenerated",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "group": "Grade",
+                            "stackType": "normal",
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "name": "dl-composite-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-composite-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### SPF Domains\n\n**Weight:** 1%\n\nProperly configured SPF records help ensure that only authorized hosts can send email on behalf of a company by providing receiving mail servers the information they need to reject mail sent by unauthorized hosts. Bitsight verifies that a company has SPF records on all domains that are sending or have attempted to send email, and that they are configured in a way that helps prevent email spoofing."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-spf-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SPF'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — SPF Domains",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-spf-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SPF'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "SPF Domains — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-spf-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-spf-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### DKIM Records\n\n**Weight:** 1%\n\nProperly configured DKIM records can help ensure that only authorized hosts can send email on the behalf of a company. Bitsight verifies that a company uses DKIM and has configured it in a way that prevents email spoofing."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-dkim-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DKIM'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — DKIM Records",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-dkim-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DKIM'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "DKIM Records — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-dkim-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-dkim-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### DMARC\n\n**Weight:** 1%\n\nDMARC authenticates that the sender of an email is legitimately authorized to send emails on a company's behalf, providing a measure of protection against spoofing."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-dmarc-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DMARC'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — DMARC",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-dmarc-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DMARC'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "DMARC — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-dmarc-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-dmarc-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### TLS/SSL Certificates\n\n**Weight:** 10%\n\nTLS/SSL certificates are used to encrypt traffic over the Internet. Bitsight analyzes TLS/SSL certificates and provides information about their effectiveness. Certificates are responsible for verifying the authenticity of your company servers to your associates, clients, and guests, and serve as the basis for establishing cryptographic trust."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-sslcert-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SSL Certificates'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — TLS/SSL Certificates",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-sslcert-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SSL Certificates'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "TLS/SSL Certificates — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-sslcert-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-sslcert-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### TLS/SSL Configurations\n\n**Weight:** 15%\n\nEvaluates TLS/SSL server configurations, which includes whether a company's servers have correctly configured security protocol libraries, and support strong encryption standards when making encrypted connections to other machines. Incorrect or weak configurations may make servers vulnerable to certain attacks (POODLE, Heartbleed)."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-sslconf-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SSL Configurations'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — TLS/SSL Configurations",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-sslconf-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'SSL Configurations'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "TLS/SSL Configurations — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-sslconf-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-sslconf-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Open Ports\n\n**Weight:** 10%\n\nOpen Ports shows which port numbers and services are exposed to the Internet. Certain ports must be open to support normal business functions; however, unnecessary open ports provide ways for attackers to access a company's network."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-ports-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Open Ports'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — Open Ports",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-ports-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Open Ports'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "Open Ports — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-ports-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-ports-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Web Application Security\n\n**Weight:** 5%\n\nThis risk vector performs multiple assessments related to web application security. It provides information about components with known vulnerabilities, broken authentication and access control, sensitive data exposure, cross-site scripting prevention mechanisms, and security misconfigurations."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-webapp-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Web Application Security'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — Web Application Security",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-webapp-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Web Application Security'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "Web Application Security — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-webapp-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-webapp-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Critical Vulnerability Management\n\n**Weight:** 20%\n\nThis risk vector evaluates how quickly, on average, vulnerabilities are remediated or patched. This average time-to-remediate is weighted according to the severity of the vulnerability, so more severe vulnerabilities have greater impact on the risk vector grade. Vulnerabilities are publicly disclosed holes or bugs in software that can be used by attackers to gain unauthorized access to systems and data. Patches are updates to the affected software that resolve the vulnerability and close that particular avenue of attack.\n\nThis graph displays the average amount of time it took to patch all rating-impacting vulnerabilities in a particular month, displaying how long, in weeks, they remained unpatched. Patched vulnerabilities continue to impact the risk vector grade for 90 days after remediation."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-cvm-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "// Avg weeks between first-seen and last-seen (proxy for\n// time-to-patch) per month across rating-impacting vulns.\nBitSightFindingsData\n| where RiskVectorLabel == 'Critical Vulnerability Management'\n| extend FirstSeen = todatetime(column_ifexists('FirstSeen', TimeGenerated)),\n         LastSeen  = todatetime(column_ifexists('LastSeen',  TimeGenerated))\n| extend WeeksToRemediate = todouble(datetime_diff('day', LastSeen, FirstSeen)) / 7.0\n| where WeeksToRemediate >= 0\n| summarize ['Remediation Time (Weeks)'] = avg(WeeksToRemediate)\n           by bin(TimeGenerated, 30d)\n| order by TimeGenerated asc",
+                          "size": 1,
+                          "title": "Vulnerability Patching Performance",
+                          "timeContext": {
+                            "durationMs": 31536000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "timechart"
+                        },
+                        "customWidth": "45",
+                        "name": "dl-cvm-chart"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Critical Vulnerability Management'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| summarize Total=count(), Good=countif(Grade=='GOOD'),\n            Bad=countif(Grade=='BAD' or Grade=='WARN')\n| extend GoodPct=iff(Total==0, real(0), todouble(Good)/Total),\n         BadPct =iff(Total==0, real(0), todouble(Bad)/Total)\n| extend OverallGrade = case(Total==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Findings']=Total",
+                          "size": 4,
+                          "title": "Critical Vulnerability Management — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Findings",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-cvm-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-cvm-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Insecure Systems\n\n**Weight:** 2.5%\n\nInsecure Systems is an indication of the number of an organization's endpoints that are communicating with an unintended destination. The software of these endpoints may be outdated, tampered with, or misconfigured. \"Endpoints\" refer to any desktop computer, server, mobile device, media system, or appliance that has internet access. A system is classified as \"insecure system\" when these endpoints try to communicate with a web domain that doesn't yet exist or isn't registered to anyone."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-insecure-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Insecure Systems'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — Insecure Systems",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-insecure-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Insecure Systems'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "Insecure Systems — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-insecure-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-insecure-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Server Software\n\n**Weight:** 2%\n\nThe Server Software risk type can be used to create a rich picture about the software used by an organization. It helps track security holes created by server software that is no longer supported by its original developers or has become out-of-date (deprecated)."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-srvsw-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Server Software'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — Server Software",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-srvsw-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Server Software'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "Server Software — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-srvsw-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-srvsw-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Desktop Software\n\n**Weight:** 3%\n\nDesktop software are laptops, servers, and other non-tablet, non-phone computers in a company's network which access the internet. Outgoing communications from desktop software include metadata about the device's operating system and browser version; we compare the devices' version of OS and browser with currently released versions and software updates available for those systems, and determine whether those systems are supported or out of date."
+                        },
+                        "name": "dl-dsksw-text"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "> 💡 **Tip:** If your organization has guest networks, contact Bitsight Support to request their exclusion from your rating-impacting infrastructure."
+                        },
+                        "name": "dl-dsksw-tip"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Top Desktop Software: Outdated**  \nThis shows up to 10 operating systems and browsers (sorted by observed device count) that reached their end-of-life, indicating a risk to the organization."
+                        },
+                        "name": "dl-dsksw-outdated-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "// Top end-of-life OS/Browsers by observed device count\nBitSightFindingsData\n| where RiskVectorLabel == 'Desktop Software'\n| extend d = parse_json(Details)[0]\n| extend DeviceType = tostring(coalesce(d.device_type, 'Unknown')),\n         Product    = tostring(coalesce(d.product, d.software, 'Unknown')),\n         Version    = tostring(coalesce(d.version, '')),\n         Devices    = toint(coalesce(d.device_count, 1))\n| summarize ['Device Count'] = sum(Devices) by Product, Version, DeviceType\n| top 10 by ['Device Count'] desc",
+                          "size": 1,
+                          "title": "Top Desktop Software: Outdated",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Product",
+                            "yAxis": [
+                              "Device Count"
+                            ],
+                            "group": "DeviceType"
+                          }
+                        },
+                        "name": "dl-dsksw-outdated-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Desktop Software: Next 6 Months Finding Grade Evolution**  \nThis shows operating systems and browsers sorted by severity and their proximity to becoming out-of-date. Use this to see how those findings evolve in the next 6 months."
+                        },
+                        "name": "dl-dsksw-evo-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "// Proxy for 'Next 6 Months Finding Grade Evolution':\n// current severity distribution of in-flight findings.\nBitSightFindingsData\n| where RiskVectorLabel == 'Desktop Software'\n| summarize ['Finding Count'] = count() by SeverityCategory\n| order by SeverityCategory asc",
+                          "size": 1,
+                          "title": "Desktop Software: Next 6 Months Finding Grade Evolution",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "SeverityCategory",
+                            "yAxis": [
+                              "Finding Count"
+                            ]
+                          }
+                        },
+                        "name": "dl-dsksw-evo-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Desktop Software: Total Devices and Threshold**  \nThese are devices observed in the past 6 months, showing when they start impacting the Desktop Software risk vector grade. Findings do not impact ratings until the number of devices has met the threshold and has been consistently above it for 65 days."
+                        },
+                        "name": "dl-dsksw-thr-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Desktop Software'\n| where TimeGenerated > ago(180d)\n| extend d = parse_json(Details)[0]\n| extend Devices = toint(coalesce(d.device_count, 1))\n| summarize ['Total Devices (180d)'] = sum(Devices)",
+                          "size": 4,
+                          "title": "Desktop Software: Total Devices and Threshold",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Devices (180d)",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "orange"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "name": "dl-dsksw-thr-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-dsksw-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Mobile Software\n\n**Weight:** 1%\n\nMobile Software measures mobile devices, such as smartphones and tablets, that are accessing the Internet from an organization's network. Outgoing communications from mobile devices include metadata about the device's operating system, browser version, and applications. The version information is compared with the latest and currently available versions in order to determine if the mobile device is running supported or out-of-date software."
+                        },
+                        "name": "dl-mobsw-text"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "> 💡 **Tip:** If your organization has guest networks, contact Bitsight Support to request their exclusion from your rating-impacting infrastructure."
+                        },
+                        "name": "dl-mobsw-tip"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Top Mobile Software: Outdated**  \nThis shows up to 10 operating systems and browsers (sorted by observed device count) that reached their end-of-life, indicating a risk to the organization."
+                        },
+                        "name": "dl-mobsw-outdated-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "// Top end-of-life OS/Browsers by observed device count\nBitSightFindingsData\n| where RiskVectorLabel == 'Mobile Software'\n| extend d = parse_json(Details)[0]\n| extend DeviceType = tostring(coalesce(d.device_type, 'Unknown')),\n         Product    = tostring(coalesce(d.product, d.software, 'Unknown')),\n         Version    = tostring(coalesce(d.version, '')),\n         Devices    = toint(coalesce(d.device_count, 1))\n| summarize ['Device Count'] = sum(Devices) by Product, Version, DeviceType\n| top 10 by ['Device Count'] desc",
+                          "size": 1,
+                          "title": "Top Mobile Software: Outdated",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Product",
+                            "yAxis": [
+                              "Device Count"
+                            ],
+                            "group": "DeviceType"
+                          }
+                        },
+                        "name": "dl-mobsw-outdated-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Mobile Software: Next 6 Months Finding Grade Evolution**  \nThis shows operating systems and browsers sorted by severity and their proximity to becoming out-of-date. Use this to see how those findings evolve in the next 6 months."
+                        },
+                        "name": "dl-mobsw-evo-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "// Proxy for 'Next 6 Months Finding Grade Evolution':\n// current severity distribution of in-flight findings.\nBitSightFindingsData\n| where RiskVectorLabel == 'Mobile Software'\n| summarize ['Finding Count'] = count() by SeverityCategory\n| order by SeverityCategory asc",
+                          "size": 1,
+                          "title": "Mobile Software: Next 6 Months Finding Grade Evolution",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "SeverityCategory",
+                            "yAxis": [
+                              "Finding Count"
+                            ]
+                          }
+                        },
+                        "name": "dl-mobsw-evo-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "**Mobile Software: Total Devices and Threshold**  \nThese are devices observed in the past 6 months, showing when they start impacting the Mobile Software risk vector grade. Findings do not impact ratings until the number of devices has met the threshold and has been consistently above it for 65 days."
+                        },
+                        "name": "dl-mobsw-thr-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Mobile Software'\n| where TimeGenerated > ago(180d)\n| extend d = parse_json(Details)[0]\n| extend Devices = toint(coalesce(d.device_count, 1))\n| summarize ['Total Devices (180d)'] = sum(Devices)",
+                          "size": 4,
+                          "title": "Mobile Software: Total Devices and Threshold",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Total Devices (180d)",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "orange"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "name": "dl-mobsw-thr-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-mobsw-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### DNSSEC\n\n**Weight:** Does not impact rating *(\\* does not currently affect Security Ratings)*\n\nDNSSEC is a protocol that uses public key encryption to authenticate DNS servers. Bitsight verifies whether a company is using DNSSEC and if it is configured effectively."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-dnssec-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DNSSEC'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — DNSSEC",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-dnssec-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'DNSSEC'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "DNSSEC — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-dnssec-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-dnssec-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Web Application Headers\n\n**Weight:** Does not impact rating *(\\* does not currently affect Security Ratings)*\n\nThis risk vector analyzes security-related fields in the header section of HTTP request and response messages. If configured correctly, these fields can help provide protection against malicious behavior, such as man-in-the-middle and cross-site scripting attacks. Different types of headers are required for HTTP/1.0, HTTP/1.1, and HTTPS.\n\nSee the Knowledge Base for a list of required headers for each protocol."
+                        },
+                        "customWidth": "40",
+                        "name": "dl-webhdr-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Web Application Headers'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Count = count() by Grade\n| extend GradeOrder = case(Grade=='GOOD',1, Grade=='FAIR',2, Grade=='WARN',3, Grade=='BAD',4, Grade=='NEUTRAL',5, 6)\n| order by GradeOrder asc\n| project Grade, Count",
+                          "size": 1,
+                          "title": "Grade Distribution — Web Application Headers",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Grade",
+                            "yAxis": [
+                              "Count"
+                            ],
+                            "seriesLabelSettings": [
+                              {
+                                "seriesName": "GOOD",
+                                "color": "green"
+                              },
+                              {
+                                "seriesName": "FAIR",
+                                "color": "yellow"
+                              },
+                              {
+                                "seriesName": "WARN",
+                                "color": "orange"
+                              },
+                              {
+                                "seriesName": "BAD",
+                                "color": "redBright"
+                              },
+                              {
+                                "seriesName": "NEUTRAL",
+                                "color": "gray"
+                              }
+                            ]
+                          }
+                        },
+                        "customWidth": "45",
+                        "name": "dl-webhdr-bar"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Web Application Headers'\n| extend Grade = toupper(tostring(parse_json(Details)[0].grade))\n| where isnotempty(Grade)\n| summarize Total=count(),\n            Good=countif(Grade=='GOOD'), Fair=countif(Grade=='FAIR'),\n            Warn=countif(Grade=='WARN'), Bad =countif(Grade=='BAD'),\n            Neutral=countif(Grade=='NEUTRAL')\n| extend NonNeutral = Total - Neutral\n| extend GoodPct = iff(NonNeutral==0, real(0), todouble(Good)/NonNeutral),\n         BadPct  = iff(NonNeutral==0, real(0), todouble(Bad+Warn)/NonNeutral)\n| extend OverallGrade = case(NonNeutral==0, 'N/A',\n    GoodPct>=0.9, 'A', GoodPct>=0.75, 'B', GoodPct>=0.5, 'C',\n    BadPct>=0.5, 'F', 'D')\n| project ['Overall Grade']=OverallGrade, ['Records']=Total",
+                          "size": 4,
+                          "title": "Web Application Headers — Overall",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "Overall Grade",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Records",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "auto"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "15",
+                        "name": "dl-webhdr-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-webhdr-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Domain Squatting\n\n**Weight:** Does not impact rating *(\\** informational — never affects Security Ratings)*\n\nDomain squatting reports on the presence of registered domains named similarly to those owned by an organization. Attackers set up malicious software served by similar domain names to take advantage of organization visitors' mistyped URLs, and can trick users to opening malicious email attachment if recipients do not carefully check messages' domain names of origin."
+                        },
+                        "name": "dl-domsq-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Domain Squatting'\n| extend d = parse_json(Details)[0]\n| extend SquattingType = tostring(coalesce(d.squatting_type, d.type, 'Unknown')),\n         RegisteredBy   = tostring(coalesce(d.registered_by, d.registration_status, 'Unregistered'))\n| summarize Results = count() by SquattingType, RegisteredBy\n| order by Results desc",
+                          "size": 1,
+                          "title": "Overview — Squatting Type × Registered By",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "RegisteredBy",
+                            "yAxis": [
+                              "Results"
+                            ],
+                            "group": "SquattingType"
+                          }
+                        },
+                        "customWidth": "70",
+                        "name": "dl-domsq-overview"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Domain Squatting'\n| extend d = parse_json(Details)[0]\n| extend SquattingType = tostring(coalesce(d.squatting_type, d.type, 'Unknown'))\n| summarize Count = count() by SquattingType\n| order by Count desc",
+                          "size": 4,
+                          "title": "Totals by type",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "tiles",
+                          "tileSettings": {
+                            "titleContent": {
+                              "columnMatch": "SquattingType",
+                              "formatter": 1
+                            },
+                            "leftContent": {
+                              "columnMatch": "Count",
+                              "formatter": 12,
+                              "formatOptions": {
+                                "palette": "purple"
+                              }
+                            },
+                            "showBorder": true
+                          }
+                        },
+                        "customWidth": "30",
+                        "name": "dl-domsq-tile"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "dl-domsq-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---\n<small>\\* Risk Vector does not currently affect Security Ratings</small>  \n<small>\\** Informational risk vector (will never affect Security Ratings)</small>"
+                        },
+                        "name": "dl-footnotes"
+                      }
+                    ]
+                  },
+                  "conditionalVisibility": {
+                    "parameterName": "selectedSubTab",
+                    "comparison": "isEqualTo",
+                    "value": "diligence"
+                  },
+                  "name": "sub-tab-diligence"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "# User Behavior\n\n**Total weight:** 2.5%\n\nUser Behavior looks at user file sharing activity that may introduce malicious software into a company, for example, by downloading a compromised file."
+                        },
+                        "name": "cat-header-user-behaviour"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### File Sharing\n\n**Weight:** 2.5%\n\nFile sharing is the exchange of media and software, passed through a centralized server (File Transfer Protocol, email, instant messaging), distributed cloud storage services, or direct peer-to-peer channels such as BitTorrent, Gnutella.\n\nBitsight only tracks file sharing over the BitTorrent protocol, when seen on company infrastructure, and records the sharing of such files as books, music, movies, TV shows, and applications."
+                        },
+                        "customWidth": "40",
+                        "name": "ub-file-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'File Sharing'\n| extend Category = tostring(parse_json(Details)[0].category)\n| extend Category = iff(isempty(Category), 'Other', Category)\n| summarize ['Record Count'] = count() by Category\n| order by Category asc",
+                          "size": 1,
+                          "title": "File Sharing over 60 days",
+                          "timeContext": {
+                            "durationMs": 5184000000
+                          },
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "barchart",
+                          "chartSettings": {
+                            "xAxis": "Category",
+                            "yAxis": [
+                              "Record Count"
+                            ]
+                          }
+                        },
+                        "customWidth": "60",
+                        "name": "ub-file-chart"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "ub-file-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Exposed Credentials\n\n**Weight:** Does not impact rating *(\\** informational — never affects Security Ratings)*\n\nThe Exposed Credentials risk vector indicates if employees of a company had their information disclosed as a result of a publicly disclosed data breach. Exposed Credentials is an informational risk vector and does not affect a company's Security Rating. Many websites do not validate email addresses, which makes it difficult to assert that certain exposed records are associated with a company's employees. Likewise, Bitsight does not test that exposed credentials are valid, for example by trying a username and password exposed from a breached site, in order to preserve business confidence and trust."
+                        },
+                        "name": "ub-cred-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Exposed Credentials'\n| extend d = parse_json(Details)[0]\n| project ['Observation Date'] = TimeGenerated,\n          ['Exposure Date']    = todatetime(d.exposure_date),\n          ['Breached Site']    = tostring(d.breached_site),\n          ['Domains']          = tostring(d.domains),\n          ['Records']          = toint(d.records)\n| order by ['Observation Date'] desc",
+                          "size": 1,
+                          "title": "Observed Events",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "table"
+                        },
+                        "name": "ub-cred-table"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "ub-cred-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---\n<small>\\* Risk Vector does not currently affect Security Ratings</small>  \n<small>\\** Informational risk vector (will never affect Security Ratings)</small>"
+                        },
+                        "name": "ub-footnotes"
+                      }
+                    ]
+                  },
+                  "conditionalVisibility": {
+                    "parameterName": "selectedSubTab",
+                    "comparison": "isEqualTo",
+                    "value": "user_behavior"
+                  },
+                  "name": "sub-tab-user_behavior"
+                },
+                {
+                  "type": 12,
+                  "content": {
+                    "version": "NotebookGroup/1.0",
+                    "groupType": "editable",
+                    "items": [
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "# Public Disclosures\n\n**Total weight:** Variable weight\n\nPublic Disclosure events provide information on breaches, general security incidents, and other disclosures related to possible incidents of undesirable access to a company's data.\n\nOnly certain events in this category affect a company's rating and only if they occur, as opposed to having a percentage of the rating dedicated to them."
+                        },
+                        "name": "cat-header-public-disclosures"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Security Incidents\n\n**Weight:** Some events impact rating\n\n#### Breaches\n\nBreaches are publicly disclosed events of unauthorized access, often involving data loss or theft. These events are graded based on several factors, including the number of lost or exposed data records.\n\n**Note:** Breaches have a negative impact on Security Ratings if they occur. Breach impacts have a 120-day half-life. For instance, the remaining impact of a breach will be fewer than 20 points after 18 months for severe breaches and under 10 points for moderate breaches."
+                        },
+                        "name": "pd-sec-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel in ('Security Incidents', 'Security Incidents/Breaches')\n| extend d = parse_json(Details)[0]\n| project ['Public Discovery'] = todatetime(d.public_discovery_date),\n          ['Effective Date']   = todatetime(d.effective_date),\n          ['Severity']         = SeverityCategory,\n          ['Category']         = tostring(d.category)\n| order by ['Public Discovery'] desc",
+                          "size": 1,
+                          "title": "Breaches",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "table"
+                        },
+                        "name": "pd-sec-table"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "pd-sec-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "### Other Disclosures\n\n**Weight:** Does not impact rating *(\\* does not currently affect Security Ratings)*\n\nOther Disclosures are considered the least severe group of events within Public Disclosures. This category is used for incidents we learn about via public information, and through other means, that are judged to be minimal in their reflection on security posture. All categories of Other Disclosures are informational only and do not impact the rating."
+                        },
+                        "name": "pd-other-text"
+                      },
+                      {
+                        "type": 3,
+                        "content": {
+                          "version": "KqlItem/1.0",
+                          "query": "BitSightFindingsData\n| where RiskVectorLabel == 'Other Disclosures'\n| extend d = parse_json(Details)[0]\n| project ['Public Discovery'] = todatetime(d.public_discovery_date),\n          ['Effective Date']   = todatetime(d.effective_date),\n          ['Severity']         = SeverityCategory,\n          ['Category']         = tostring(d.category),\n          ['Origin']           = tostring(d.origin)\n| order by ['Public Discovery'] desc",
+                          "size": 1,
+                          "title": "Observed Events",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "visualization": "table"
+                        },
+                        "name": "pd-other-table"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---"
+                        },
+                        "name": "pd-other-div"
+                      },
+                      {
+                        "type": 1,
+                        "content": {
+                          "json": "---\n<small>\\* Risk Vector does not currently affect Security Ratings</small>  \n<small>\\** Informational risk vector (will never affect Security Ratings)</small>"
+                        },
+                        "name": "pd-footnotes"
+                      }
+                    ]
+                  },
+                  "conditionalVisibility": {
+                    "parameterName": "selectedSubTab",
+                    "comparison": "isEqualTo",
+                    "value": "public_disc"
+                  },
+                  "name": "sub-tab-public_disc"
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "selectedParentTab",
+              "comparison": "isEqualTo",
+              "value": "risk_vectors"
+            },
+            "name": "parent-tab-risk_vectors"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "## Assets Overview\n\nExternal-facing assets BitSight has discovered for the selected company, with findings, importance, geography and change activity. Filters at the top apply."
+                  },
+                  "name": "assets-header"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Compromised Systems\"\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
-                    "size": 0,
-                    "aggregation": 4,
-                    "title": "Compromised Systems by Risk Vector Over Time",
+                    "query": "let base = BitsightAssets_data_CL\n    | where TimeGenerated {Timer}\n    | where '{company}' == '*' or company_name == '{company}'\n    | extend total_findings = toint(parse_json(findings).total_count);\nunion\n    (base | summarize Value = count()                                           | extend Metric = \"Total Assets\",           Rank = 1),\n    (base | summarize Value = countif(total_findings > 0)                       | extend Metric = \"Assets with Findings\",   Rank = 2),\n    (base | summarize Value = sum(total_findings)                               | extend Metric = \"Total Findings\",         Rank = 3),\n    (base | summarize Value = countif(importance_category in (\"high\",\"critical\")) | extend Metric = \"High Importance Assets\", Rank = 4)\n| project Metric, Value = tostring(Value), Rank\n| order by Rank asc\n",
+                    "size": 3,
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
-                    "visualization": "linechart",
-                    "graphSettings": {
-                      "type": 0,
-                      "topContent": {
-                        "columnMatch": "Date",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Metric",
                         "formatter": 1
                       },
-                      "centerContent": {
-                        "columnMatch": "count_",
-                        "formatter": 1,
-                        "numberFormat": {
-                          "unit": 17,
-                          "options": {
-                            "maximumSignificantDigits": 3,
-                            "maximumFractionDigits": 2
-                          }
+                      "leftContent": {
+                        "columnMatch": "Value",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "blue"
                         }
-                      }
-                    },
-                    "chartSettings": {
-                      "xAxis": "Date",
-                      "yAxis": [
-                        "count_"
-                      ],
-                      "group": "RiskVectorLabel",
-                      "createOtherGroup": null,
-                      "showDataPoints": true
+                      },
+                      "showBorder": true,
+                      "size": "medium"
                     }
                   },
-                  "name": "query - 6",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
-                },
-                {
-                  "type": 3,
-                  "content": {
-                    "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"User Behavior\"\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
-                    "size": 0,
-                    "aggregation": 4,
-                    "title": "User Behavior by Risk Vector Over Time",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces",
-                    "visualization": "linechart",
-                    "chartSettings": {
-                      "xAxis": "Date",
-                      "yAxis": [
-                        "count_"
-                      ],
-                      "group": "RiskVectorLabel",
-                      "createOtherGroup": null
-                    }
-                  },
-                  "name": "query - 15"
+                  "name": "assets-kpi-tiles"
                 },
                 {
                   "type": 1,
                   "content": {
-                    "json": "##### Diligence by Risk Vector Over Time"
+                    "json": "---"
                   },
-                  "name": "text - 13"
+                  "name": "assets-div-1"
                 },
                 {
-                  "type": 9,
+                  "type": 1,
                   "content": {
-                    "version": "KqlParameterItem/1.0",
-                    "parameters": [
-                      {
-                        "id": "4d26ba1c-db98-437a-9a0c-63126f341afb",
-                        "version": "KqlParameterItem/1.0",
-                        "name": "Risk_Vector",
-                        "label": "Risk Vector",
-                        "type": 2,
-                        "isRequired": true,
-                        "multiSelect": true,
-                        "quote": "'",
-                        "delimiter": ",",
-                        "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Diligence\"\r\n| distinct RiskVectorLabel\r\n",
-                        "typeSettings": {
-                          "additionalResourceOptions": [
-                            "value::all"
-                          ],
-                          "selectAllValue": "*",
-                          "showDefault": false
-                        },
-                        "queryType": 0,
-                        "resourceType": "microsoft.operationalinsights/workspaces",
-                        "value": [
-                          "value::all"
-                        ]
-                      }
-                    ],
-                    "style": "pills",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces"
+                    "json": "### Distribution"
                   },
-                  "name": "parameters - 12"
+                  "name": "assets-dist-header"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Diligence\" and ('*' in ({Risk_Vector}) or RiskVectorLabel in ({Risk_Vector}))\r\n| extend Date = format_datetime(todatetime(LastSeen), 'yyyy-MM')\r\n| summarize count() by RiskVectorLabel,Date\r\n| project Date, count_, RiskVectorLabel\r\n| order by Date asc\r\n",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| summarize Count = count() by Importance = tostring(importance_category)\n| order by Count desc\n",
                     "size": 0,
-                    "aggregation": 4,
+                    "title": "Assets by Importance Category",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart"
+                  },
+                  "customWidth": "50",
+                  "name": "assets-by-importance"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| summarize Count = count() by [\"Asset Type\"] = tostring(asset_type)\n| order by Count desc\n",
+                    "size": 0,
+                    "title": "Assets by Type",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart"
+                  },
+                  "customWidth": "50",
+                  "name": "assets-by-type"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "---"
+                  },
+                  "name": "assets-div-2"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "### Geography & Change Activity"
+                  },
+                  "name": "assets-geo-header"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| summarize Count = count() by Country = tostring(country)\n| top 15 by Count desc\n",
+                    "size": 0,
+                    "title": "Top Countries by Asset Count",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "barchart",
+                    "chartSettings": {
+                      "xAxis": "Country",
+                      "yAxis": [
+                        "Count"
+                      ],
+                      "createOtherGroup": 0
+                    }
+                  },
+                  "customWidth": "50",
+                  "name": "assets-by-country"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| extend Day = bin(TimeGenerated, 1d)\n| summarize Count = count() by Day, [\"Change Type\"] = tostring(change_type)\n| order by Day asc\n",
+                    "size": 0,
+                    "title": "Change Activity Over Time",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "linechart",
-                    "tileSettings": {
-                      "showBorder": false,
-                      "titleContent": {
-                        "columnMatch": "Date",
-                        "formatter": 1
-                      },
-                      "leftContent": {
-                        "columnMatch": "count_",
-                        "formatter": 12,
-                        "formatOptions": {
-                          "palette": "auto"
-                        },
-                        "numberFormat": {
-                          "unit": 17,
-                          "options": {
-                            "maximumSignificantDigits": 3,
-                            "maximumFractionDigits": 2
-                          }
-                        }
-                      }
-                    },
                     "chartSettings": {
-                      "xAxis": "Date",
+                      "xAxis": "Day",
                       "yAxis": [
-                        "count_"
+                        "Count"
                       ],
-                      "group": "RiskVectorLabel",
+                      "group": "Change Type",
                       "createOtherGroup": 0,
                       "showDataPoints": true
                     }
                   },
-                  "name": "query - 14"
-                },
-                {
-                  "type": 3,
-                  "content": {
-                    "version": "KqlItem/1.0",
-                    "query": "BitSightDiligenceHistoricalStatistics\r\n| where todatetime(Date) {Timer} and CompanyName == '{company}'\r\n| extend yyyy_mm = format_datetime(todatetime(Date), 'yyyy-MM')\r\n| summarize round(avg(Count),2) by yyyy_mm, Category\r\n| project Category, avg_Count, yyyy_mm = strcat(yyyy_mm,\" (Avg)\")\r\n| order by yyyy_mm asc, Category asc\r\n| limit 15",
-                    "size": 0,
-                    "aggregation": 4,
-                    "title": "Diligence Observations by Severity",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces",
-                    "visualization": "unstackedbar",
-                    "sortBy": [],
-                    "chartSettings": {
-                      "xAxis": "yyyy_mm",
-                      "yAxis": [
-                        "avg_Count"
-                      ],
-                      "group": "Category",
-                      "createOtherGroup": null
-                    }
-                  },
-                  "name": "query - 8",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
-                },
-                {
-                  "type": 3,
-                  "content": {
-                    "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsData\r\n| where todatetime(LastSeen) {Timer} and CompanyName == '{company}' and RiskCategory == \"Compromised Systems\" and RiskVectorLabel == \"Botnet Infections\"\r\n| extend d=parse_json(Details) \r\n| mv-expand asset = todynamic(Assets)\r\n| project Infection = dynamic_to_json(d[0].infection.family), [\"Detection Method\"] = dynamic_to_json(d[0].detection_method), [\"Last Seen\"] = column_ifexists(\"LastSeen\",\"\"), Asset = dynamic_to_json(asset.asset)\r\n| distinct Infection, [\"Detection Method\"], Asset, [\"Last Seen\"]\r\n| order by [\"Last Seen\"] desc",
-                    "size": 0,
-                    "title": "Infections",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces",
-                    "gridSettings": {
-                      "rowLimit": 10000,
-                      "filter": true
-                    },
-                    "sortBy": []
-                  },
-                  "name": "query - 7",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
+                  "customWidth": "50",
+                  "name": "assets-change-over-time"
                 },
                 {
                   "type": 1,
                   "content": {
-                    "json": "##### Vulnerabilities"
+                    "json": "---"
                   },
-                  "name": "text - 11"
+                  "name": "assets-div-3"
                 },
                 {
-                  "type": 9,
+                  "type": 1,
                   "content": {
-                    "version": "KqlParameterItem/1.0",
-                    "parameters": [
-                      {
-                        "id": "c7ff4374-c346-4c43-9354-8936687c2704",
-                        "version": "KqlParameterItem/1.0",
-                        "name": "Severity",
-                        "type": 2,
-                        "isRequired": true,
-                        "multiSelect": true,
-                        "quote": "'",
-                        "delimiter": ",",
-                        "query": "BitSightFindingsSummary\r\n| where todatetime(StartDate) {Timer} and Company == '{company}'\r\n| extend Filter = case(toreal(Severity) <= 3.9 and toreal(Severity) >= 0.0, \"Minor\", \r\n                       toreal(Severity) <= 6.9 and toreal(Severity) >= 4.0, \"Moderate\",\r\n                       toreal(Severity) <= 8.9 and toreal(Severity) >= 7.0, \"Material\",\r\n                       toreal(Severity) <= 10.0 and toreal(Severity) >= 9.0, \"Severe\",\r\n                       \"\")\r\n| distinct Filter",
-                        "typeSettings": {
-                          "additionalResourceOptions": [
-                            "value::all"
-                          ],
-                          "selectAllValue": "*",
-                          "showDefault": false
-                        },
-                        "queryType": 0,
-                        "resourceType": "microsoft.operationalinsights/workspaces",
-                        "value": [
-                          "value::all"
-                        ]
-                      }
-                    ],
-                    "style": "pills",
-                    "queryType": 0,
-                    "resourceType": "microsoft.operationalinsights/workspaces"
+                    "json": "### Findings & Composition"
                   },
-                  "name": "parameters - 10"
+                  "name": "assets-findings-header"
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "BitSightFindingsSummary\r\n| where todatetime(StartDate) {Timer} and Company == '{company}'\r\n| distinct Name, Severity, StartDate, EndDate, Description\r\n| extend [\"Severity Details\"] = case(toreal(Severity) <= 3.9 and toreal(Severity) >= 0.0, \"Minor\", \r\n                       toreal(Severity) <= 6.9 and toreal(Severity) >= 4.0, \"Moderate\",\r\n                       toreal(Severity) <= 8.9 and toreal(Severity) >= 7.0, \"Material\",\r\n                       toreal(Severity) <= 10.0 and toreal(Severity) >= 9.0, \"Severe\",\r\n                       \"\")\r\n| where ('*' in ({Severity}) or [\"Severity Details\"] in ({Severity}))\r\n| project-rename Name = Name, [\"Start Date\"] = StartDate, [\"End Date\"] = EndDate\r\n| project Name, [\"Severity Details\"], [\"Start Date\"], [\"End Date\"], Description\r\n",
+                    "query": "let base = BitsightAssets_data_CL\n    | where TimeGenerated {Timer}\n    | where '{company}' == '*' or company_name == '{company}'\n    | extend c = parse_json(findings).counts_by_severity;\nunion\n    (base | summarize Count = sum(toint(c.severe))   | extend Severity = \"Severe\",   Rank = 1),\n    (base | summarize Count = sum(toint(c.material)) | extend Severity = \"Material\", Rank = 2),\n    (base | summarize Count = sum(toint(c.moderate)) | extend Severity = \"Moderate\", Rank = 3),\n    (base | summarize Count = sum(toint(c.minor))    | extend Severity = \"Minor\",    Rank = 4)\n| project Severity, Count, Rank\n| order by Rank asc\n",
                     "size": 0,
+                    "title": "Findings by Severity",
                     "queryType": 0,
                     "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "categoricalbar",
+                    "chartSettings": {
+                      "xAxis": "Severity",
+                      "yAxis": [
+                        "Count"
+                      ],
+                      "createOtherGroup": 0
+                    }
+                  },
+                  "customWidth": "50",
+                  "name": "assets-findings-by-severity"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| summarize Count = count() by Kind = iff(tostring(is_ip) == \"true\", \"IP-based\", \"Non-IP\")\n",
+                    "size": 0,
+                    "title": "Assets: IP vs Non-IP",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart"
+                  },
+                  "customWidth": "50",
+                  "name": "assets-ip-vs-other"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "---"
+                  },
+                  "name": "assets-div-4"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "### Asset Inventory"
+                  },
+                  "name": "assets-grid-header"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "BitsightAssets_data_CL\n| where TimeGenerated {Timer}\n| where '{company}' == '*' or company_name == '{company}'\n| extend f = parse_json(findings)\n| extend total_findings = toint(f.total_count),\n         severe   = toint(f.counts_by_severity.severe),\n         material = toint(f.counts_by_severity.material),\n         moderate = toint(f.counts_by_severity.moderate),\n         minor    = toint(f.counts_by_severity.minor)\n| project\n    Asset = tostring(asset),\n    [\"Asset Type\"] = tostring(asset_type),\n    Country = tostring(country),\n    Importance = tostring(importance_category),\n    [\"Total Findings\"] = total_findings,\n    Severe = severe, Material = material, Moderate = moderate, Minor = minor,\n    [\"Change Type\"] = tostring(change_type),\n    [\"Last Seen\"] = TimeGenerated\n| order by [\"Total Findings\"] desc, [\"Last Seen\"] desc\n",
+                    "size": 0,
+                    "title": "Asset Inventory",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "table",
                     "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "Importance",
+                          "formatter": 11,
+                          "formatOptions": {
+                            "thresholdsOptions": "colors",
+                            "thresholdsGrid": [
+                              {
+                                "operator": "==",
+                                "thresholdValue": "critical",
+                                "representation": "redBright",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "==",
+                                "thresholdValue": "high",
+                                "representation": "orange",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "==",
+                                "thresholdValue": "medium",
+                                "representation": "yellow",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "==",
+                                "thresholdValue": "low",
+                                "representation": "green",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "Default",
+                                "representation": "transparent",
+                                "text": "{0}{1}"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "columnMatch": "Severe",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "redBright",
+                            "aggregation": "Sum"
+                          }
+                        },
+                        {
+                          "columnMatch": "Material",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "orange",
+                            "aggregation": "Sum"
+                          }
+                        },
+                        {
+                          "columnMatch": "Moderate",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "yellow",
+                            "aggregation": "Sum"
+                          }
+                        },
+                        {
+                          "columnMatch": "Minor",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "green",
+                            "aggregation": "Sum"
+                          }
+                        },
+                        {
+                          "columnMatch": "Total Findings",
+                          "formatter": 8,
+                          "formatOptions": {
+                            "min": 0,
+                            "palette": "blue",
+                            "aggregation": "Sum"
+                          }
+                        },
+                        {
+                          "columnMatch": "Change Type",
+                          "formatter": 11,
+                          "formatOptions": {
+                            "thresholdsOptions": "colors",
+                            "thresholdsGrid": [
+                              {
+                                "operator": "==",
+                                "thresholdValue": "New",
+                                "representation": "green",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "==",
+                                "thresholdValue": "Updated",
+                                "representation": "blue",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "==",
+                                "thresholdValue": "Removed",
+                                "representation": "gray",
+                                "text": "{0}{1}"
+                              },
+                              {
+                                "operator": "Default",
+                                "representation": "transparent",
+                                "text": "{0}{1}"
+                              }
+                            ]
+                          }
+                        }
+                      ],
                       "rowLimit": 10000,
                       "filter": true
                     }
                   },
-                  "name": "query - 9",
-                  "styleSettings": {
-                    "showBorder": true
-                  }
+                  "name": "assets-detail-grid"
                 }
               ]
             },
-            "name": "My Company"
+            "conditionalVisibility": {
+              "parameterName": "selectedParentTab",
+              "comparison": "isEqualTo",
+              "value": "assets"
+            },
+            "name": "parent-tab-assets"
           }
         ]
       },
-      "name": "Main",
-      "styleSettings": {
-        "showBorder": true
-      }
+      "name": "Main"
     }
   ],
-  "fromTemplateId": "sentinel-BitSightWorkbook",
-  "fallbackResourceIds": [],
+  "fallbackResourceIds": [
+    "/subscriptions/e0687f99-527c-4ffe-b7d5-d6cb9d563dc2/resourcegroups/r15_bdp4219_1980/providers/microsoft.operationalinsights/workspaces/bitsight-asset-test"
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
 }

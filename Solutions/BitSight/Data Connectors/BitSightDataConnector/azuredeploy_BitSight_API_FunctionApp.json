@@ -172,6 +172,15 @@
                 "description": "Please do not keep this field as empty else you will get validation error"
             }
         },
+        "Assets_Table_Name":{
+            "type": "string",
+            "defaultValue": "BitsightAssets_data",
+            "minLength": 1,
+            "maxLength": 42,
+            "metadata": {
+                "description": "Please do not keep this field as empty else you will get validation error"
+            }
+        },
         "LogLevel":{
             "type": "string",
             "defaultValue": "INFO",
@@ -196,6 +205,21 @@
             "defaultValue": "0 */30 * * * *",
             "metadata": {
                 "description": "Please enter a valid Quartz cron-expression. (Example: 0 */30 * * * *)"
+            }
+        },
+        "Schedule_Assets":{
+            "type": "string",
+            "defaultValue": "0 */10 * * * *",
+            "metadata": {
+                "description": "Please enter a valid Quartz cron-expression. (Example: 0 */30 * * * *)"
+            }
+        },
+        "Assets_Refresh_Hours":{
+            "type": "int",
+            "defaultValue": 24,
+            "minValue": 0,
+            "metadata": {
+                "description": "Number of hours after which the assets snapshot of a company is fetched again. By default it is set to 24."
             }
         },
         "AppInsightsWorkspaceResourceID": {
@@ -1082,6 +1106,139 @@
             }
         },
         {
+            "type": "Microsoft.OperationalInsights/workspaces/tables",
+            "apiVersion": "2022-10-01",
+            "name": "[concat(parameters('WorkspaceName'), '/', parameters('Assets_Table_Name'), '_CL')]",
+            "properties": {
+                "plan": "Analytics",
+                "schema": {
+                    "name": "[concat(parameters('Assets_Table_Name'), '_CL')]",
+                    "columns": [
+                        {
+                            "name": "temporary_id",
+                            "type": "string"
+                        },
+                        {
+                            "name": "asset",
+                            "type": "string"
+                        },
+                        {
+                            "name": "asset_type",
+                            "type": "string"
+                        },
+                        {
+                            "name": "identifier",
+                            "type": "string"
+                        },
+                        {
+                            "name": "app_grade",
+                            "type": "real"
+                        },
+                        {
+                            "name": "ip_addresses",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "country_code",
+                            "type": "string"
+                        },
+                        {
+                            "name": "country",
+                            "type": "string"
+                        },
+                        {
+                            "name": "hosted_by",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "importance",
+                            "type": "real"
+                        },
+                        {
+                            "name": "importance_category",
+                            "type": "string"
+                        },
+                        {
+                            "name": "longitude",
+                            "type": "real"
+                        },
+                        {
+                            "name": "latitude",
+                            "type": "real"
+                        },
+                        {
+                            "name": "is_ip",
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "services",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "origin_subsidiary",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "findings",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "threats",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "tags",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "tag_details",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "overrides",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "combined_overrides",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "products",
+                            "type": "dynamic"
+                        },
+                        {
+                            "name": "is_monitored",
+                            "type": "boolean"
+                        },
+                        {
+                            "name": "company_name",
+                            "type": "string"
+                        },
+                        {
+                            "name": "company_guid",
+                            "type": "string"
+                        },
+                        {
+                            "name": "asset_key",
+                            "type": "string"
+                        },
+                        {
+                            "name": "content_hash",
+                            "type": "string"
+                        },
+                        {
+                            "name": "change_type",
+                            "type": "string"
+                        },
+                        {
+                            "name": "TimeGenerated",
+                            "type": "datetime"
+                        }
+                    ]
+                }
+            }
+        },
+        {
             "type": "Microsoft.Insights/dataCollectionRules",
             "apiVersion": "2022-06-01",
             "name": "[variables('portfolioCompaniesRuleName')]",
@@ -1415,7 +1572,8 @@
                 "[concat(variables('logWsResId'), '/tables/', parameters('Observation_Statistics_Table_Name'), '_CL')]",
                 "[concat(variables('logWsResId'), '/tables/', parameters('Findings_Table_Name'), '_CL')]",
                 "[concat(variables('logWsResId'), '/tables/', parameters('Findings_Summary_Table_Name'), '_CL')]",
-                "[concat(variables('logWsResId'), '/tables/', parameters('Breaches_Table_Name'), '_CL')]"
+                "[concat(variables('logWsResId'), '/tables/', parameters('Breaches_Table_Name'), '_CL')]",
+                "[concat(variables('logWsResId'), '/tables/', parameters('Assets_Table_Name'), '_CL')]"
             ],
             "properties": {
                 "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints', variables('endpointName'))]",
@@ -1899,6 +2057,130 @@
                                 "type": "datetime"
                             }
                         ]
+                    },
+                    "[concat('Custom-', parameters('Assets_Table_Name'))]": {
+                        "columns": [
+                            {
+                                "name": "temporary_id",
+                                "type": "string"
+                            },
+                            {
+                                "name": "asset",
+                                "type": "string"
+                            },
+                            {
+                                "name": "asset_type",
+                                "type": "string"
+                            },
+                            {
+                                "name": "identifier",
+                                "type": "string"
+                            },
+                            {
+                                "name": "app_grade",
+                                "type": "real"
+                            },
+                            {
+                                "name": "ip_addresses",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "country_code",
+                                "type": "string"
+                            },
+                            {
+                                "name": "country",
+                                "type": "string"
+                            },
+                            {
+                                "name": "hosted_by",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "importance",
+                                "type": "real"
+                            },
+                            {
+                                "name": "importance_category",
+                                "type": "string"
+                            },
+                            {
+                                "name": "longitude",
+                                "type": "real"
+                            },
+                            {
+                                "name": "latitude",
+                                "type": "real"
+                            },
+                            {
+                                "name": "is_ip",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "services",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "origin_subsidiary",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "findings",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "threats",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "tags",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "tag_details",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "overrides",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "combined_overrides",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "products",
+                                "type": "dynamic"
+                            },
+                            {
+                                "name": "is_monitored",
+                                "type": "boolean"
+                            },
+                            {
+                                "name": "company_name",
+                                "type": "string"
+                            },
+                            {
+                                "name": "company_guid",
+                                "type": "string"
+                            },
+                            {
+                                "name": "asset_key",
+                                "type": "string"
+                            },
+                            {
+                                "name": "content_hash",
+                                "type": "string"
+                            },
+                            {
+                                "name": "change_type",
+                                "type": "string"
+                            },
+                            {
+                                "name": "TimeGenerated",
+                                "type": "datetime"
+                            }
+                        ]
                     }
                 },
                 "destinations": {
@@ -1999,6 +2281,16 @@
                         ],
                         "transformKql": "source\n| extend TimeGenerated = todatetime(now())",
                         "outputStream": "[concat('Custom-', parameters('Breaches_Table_Name'), '_CL')]"
+                    },
+                    {
+                        "streams": [
+                            "[concat('Custom-', parameters('Assets_Table_Name'))]"
+                        ],
+                        "destinations": [
+                            "[concat('RuleDest', variables('suffix'))]"
+                        ],
+                        "transformKql": "source\n| extend TimeGenerated = todatetime(now())",
+                        "outputStream": "[concat('Custom-', parameters('Assets_Table_Name'), '_CL')]"
                     }
                 ]
             }
@@ -2231,9 +2523,12 @@
 						"Graph_Table_Name": "[parameters('Graph_Table_Name')]",
 						"Industrial_Statistics_Table_Name": "[parameters('Industrial_Statistics_Table_Name')]",
 						"Observation_Statistics_Table_Name": "[parameters('Observation_Statistics_Table_Name')]",
+                        "Assets_Table_Name": "[parameters('Assets_Table_Name')]",
                         "LogLevel": "[parameters('LogLevel')]",
                         "Schedule": "[parameters('Schedule')]",
                         "Schedule_Portfolio": "[parameters('Schedule_Portfolio')]",
+                        "Schedule_Assets": "[parameters('Schedule_Assets')]",
+                        "Assets_Refresh_Hours": "[string(parameters('Assets_Refresh_Hours'))]",
                         "AZURE_CLIENT_ID": "[parameters('Azure_Client_Id')]",
                         "AZURE_CLIENT_SECRET": "[parameters('Azure_Client_Secret')]",
                         "AZURE_TENANT_ID": "[parameters('Azure_Tenant_Id')]",
@@ -2286,7 +2581,7 @@
                 "WaitSection"
             ],
             "properties": {
-                "packageUri": "https://aka.ms/sentinel-BitSight310Updated-functionapp",
+                "packageUri": "https://github.com/harsh-maradia/Harsh-Azure-Connectors/raw/refs/heads/main/BitSight330.zip",
                 "remoteBuild": true
             }
         },

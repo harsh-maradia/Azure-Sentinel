@@ -16,6 +16,7 @@ ENDPOINTS = {
     "diligence_historical_statistics_url": "/ratings/v1/companies/{}/diligence/historical-statistics",
     "graph_data_url": "/ratings/v1/companies/{}/graph_data",
     "alerts_data_url": "/v2/alerts/",
+    "assets_endpoint_path": "/ratings/v1/companies/{}/assets",
 }
 VULNERABILITIES_URL = (
     "https://service.bitsighttech.com/customer-api/v1/defaults/vulnerabilities"
@@ -23,6 +24,8 @@ VULNERABILITIES_URL = (
 PORTFOLIO_PAGE_SIZE = 500
 FINDINGS_PAGE_SIZE = 1000
 ALERTS_PAGE_SIZE = 1000
+ASSETS_PAGE_SIZE = 1000
+ASSETS_FALLBACK_PAGE_SIZE = 100
 AZURE_CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
 AZURE_CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
 AZURE_TENANT_ID = os.environ.get("AZURE_TENANT_ID")
@@ -51,6 +54,9 @@ DILIGENCE_HISTORICAL_STATISTICS_TABLE = os.environ.get(
 )
 GRAPH_DATA_TABLE = os.environ.get("Graph_Table_Name")
 ALERTS_DATA_TABLE = os.environ.get("Alerts_Table_Name")
+ASSETS_TABLE_NAME = os.environ.get("Assets_Table_Name")
+ASSETS_REFRESH_HOURS = os.environ.get("Assets_Refresh_Hours", "24")
+DEFAULT_ASSETS_REFRESH_HOURS = 24
 AZURE_DATA_COLLECTION_ENDPOINT = os.environ["AZURE_DATA_COLLECTION_ENDPOINT"]
 AZURE_DATA_COLLECTION_RULE_ID_COMPANY_TABLES = os.environ["AZURE_DATA_COLLECTION_RULE_ID_COMPANY_TABLES"]
 AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES = os.environ["AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES"]
@@ -67,6 +73,7 @@ TABLE_NAME_RULE_ID_MAPPING = {
     DILIGENCE_HISTORICAL_STATISTICS_TABLE: AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES,
     GRAPH_DATA_TABLE: AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES,
     ALERTS_DATA_TABLE: AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES,
+    ASSETS_TABLE_NAME: AZURE_DATA_COLLECTION_RULE_ID_DATA_TABLES,
 }
 SCOPE = os.environ["SCOPE"]
 LOGS_STARTS_WITH = "BitSight:"
@@ -75,6 +82,7 @@ FINDINGS_SUMMARY_FUNC_NAME = "Findings Summary:"
 FINDINGS_FUNC_NAME = "Findings:"
 COMPANY_DETAILS_FUNC_NAME = "Company Details:"
 ALERT_GRAPH_STATISTICS_FUNC_NAME = "Alerts-Graph-statistics Details:"
+ASSETS_FUNC_NAME = "Assets:"
 PORTFOLIO_COMPANY_QUERY = """{}_CL
     | summarize arg_max(TimeGenerated, *) by guid
     | sort by name asc
@@ -92,6 +100,14 @@ FINDINGS_SUMMARY_CHECKPOINT_TABLE = "BitSightFindingsSummaryCheckpoint"
 FINDINGS_CHECKPOINT_TABLE = "BitSightFindingsCheckpoint"
 COMPANIES_CHECKPOINT_TABLE = "BitSightCompaniesCheckpoint"
 PORTFOLIO_COMPANY_CHECKPOINT_TABLE = "BitSightPortfolioCompanyCheckpoint"
+ASSETS_CHECKPOINT_TABLE = "BitSightAssetsCheckpoint"
+ASSETS_CHUNK_SIZE = 800
+ASSETS_HASH_LENGTH = 16
+ASSETS_STATUS_IN_PROGRESS = "in_progress"
+ASSETS_STATUS_COMPLETE = "complete"
+ASSETS_CHANGE_NEW = "New"
+ASSETS_CHANGE_UPDATED = "Updated"
+ASSETS_CHANGE_REMOVED = "Removed"
 COMPANY_CHECKPOINT_PARTITION_KEY = "company"
 DATA_CHECKPOINT_PARTITION_KEY = "data"
 RATING_CHECKPOINT_PARTITION_KEY = "rating"
