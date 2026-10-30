@@ -1,16 +1,15 @@
 ﻿id: 1280e2d5-9d9a-4455-8aec-3e340a3ffeb2
 Function:
   Title: Parser for BitSightCompanyRatings
-  Version: '1.2.0'
-  LastUpdated: '2026-10-14'
+  Version: '1.1.0'
+  LastUpdated: '2026-05-25'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightCompanyRatings
 FunctionAlias: BitSightCompanyRatings
 FunctionQuery: |
     union isfuzzy=true
         (
-            // 3.3.0+ table (Logs Ingestion API, plain columns)
-            BitsightCompany_rating_details_v3_CL
+            BitsightCompany_rating_details_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "CompanyRating",
@@ -25,39 +24,6 @@ FunctionQuery: |
                     Order = column_ifexists('order', ''),
                     Percentile = column_ifexists('percentile', ''),
                     Rating = column_ifexists('rating', '')
-            | project
-                    TimeGenerated,
-                    EventVendor,
-                    EventProduct,
-                    CompanyName,
-                    Beta,
-                    Category,
-                    CategoryOrder,
-                    DisplayURL,
-                    Grade,
-                    GradeColor,
-                    Name,
-                    Order,
-                    Percentile,
-                    Rating
-        ),
-        (
-            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
-            BitsightCompany_rating_details_CL
-            | extend
-                    EventVendor = "BitSight",
-                    EventProduct = "CompanyRating",
-                    CompanyName = tostring(column_ifexists('Company_name_s', '')),
-                    Beta = tobool(column_ifexists('beta_b', '')),
-                    Category = tostring(column_ifexists('Category', '')),
-                    CategoryOrder = todouble(column_ifexists('category_order_d', '')),
-                    DisplayURL = tostring(column_ifexists('display_url_s', '')),
-                    Grade = tostring(column_ifexists('grade_s', '')),
-                    GradeColor = tostring(column_ifexists('grade_color_s', '')),
-                    Name = tostring(column_ifexists('name_s', '')),
-                    Order = todouble(column_ifexists('order_d', '')),
-                    Percentile = coalesce(replace_regex(tostring(todouble(column_ifexists('percentile_d', ''))), @'\.0$', ''), tostring(column_ifexists('percentile_s', ''))),
-                    Rating = coalesce(replace_regex(tostring(todouble(column_ifexists('rating_d', ''))), @'\.0$', ''), tostring(column_ifexists('rating_s', '')))
             | project
                     TimeGenerated,
                     EventVendor,

@@ -1,16 +1,15 @@
 ﻿id: 4bb0ba56-5a8c-4b74-88c5-237037eaa3ee
 Function:
   Title: Parser for BitSightFindingsData
-  Version: '1.2.0'
-  LastUpdated: '2026-10-14'
+  Version: '1.1.0'
+  LastUpdated: '2026-05-25'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightFindingsData
 FunctionAlias: BitSightFindingsData
 FunctionQuery: |
     union isfuzzy=true
         (
-            // 3.3.0+ table (Logs Ingestion API, plain columns)
-            BitsightFindings_data_v3_CL
+            BitsightFindings_data_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "FindingsData",
@@ -40,69 +39,6 @@ FunctionQuery: |
                     AttributedCompanies = column_ifexists('attributed_companies', ''),
                     CompanyName = column_ifexists('company_name', ''),
                     RemainingDecay = column_ifexists('remaining_decay', '')
-            | project
-                    TimeGenerated,
-                    EventVendor,
-                    EventProduct,
-                    RemediationHistoryLastRequestedRefreshDate,
-                    RemediationHistoryLastRefreshStatusDate,
-                    RemediationHistoryLastRefreshStatusLabel,
-                    RemediationHistoryLastRefreshReasonCode,
-                    Comments,
-                    TemporaryId,
-                    PcapID,
-                    AffectsRating,
-                    Assets,
-                    Details,
-                    EvidenceKey,
-                    FirstSeen,
-                    LastSeen,
-                    RelatedFindings,
-                    RiskCategory,
-                    RiskVector,
-                    RiskVectorLabel,
-                    RolledupObservationId,
-                    Severity,
-                    SeverityCategory,
-                    Tags,
-                    AssetOverrides,
-                    Duration,
-                    AttributedCompanies,
-                    CompanyName,
-                    RemainingDecay
-        ),
-        (
-            // 3.0.x classic table (HTTP Data Collector API, suffixed columns)
-            BitsightFindings_data_CL
-            | extend
-                    EventVendor = "BitSight",
-                    EventProduct = "FindingsData",
-                    RemediationHistoryLastRequestedRefreshDate = tostring(column_ifexists('remediation_history_last_requested_refresh_date_s', '')),
-                    RemediationHistoryLastRefreshStatusDate = tostring(column_ifexists('remediation_history_last_refresh_status_date_s', '')),
-                    RemediationHistoryLastRefreshStatusLabel = tostring(column_ifexists('remediation_history_last_refresh_status_label_s', '')),
-                    RemediationHistoryLastRefreshReasonCode = tostring(column_ifexists('remediation_history_last_refresh_reason_code_s', '')),
-                    Comments = tostring(column_ifexists('comments_s', '')),
-                    TemporaryId = tostring(column_ifexists('temporary_id_s', '')),
-                    PcapID = tostring(column_ifexists('pcap_id_s', '')),
-                    AffectsRating = tobool(column_ifexists('affects_rating_b', '')),
-                    Assets = todynamic(column_ifexists('assets_s', '')),
-                    Details = todynamic(column_ifexists('details_s', '')),
-                    EvidenceKey = tostring(column_ifexists('evidence_key_s', '')),
-                    FirstSeen = todatetime(column_ifexists('first_seen_s', '')),
-                    LastSeen = todatetime(column_ifexists('last_seen_s', '')),
-                    RelatedFindings = todynamic(column_ifexists('related_findings_s', '')),
-                    RiskCategory = tostring(column_ifexists('risk_category_s', '')),
-                    RiskVector = tostring(column_ifexists('risk_vector_s', '')),
-                    RiskVectorLabel = tostring(column_ifexists('risk_vector_label_s', '')),
-                    RolledupObservationId = tostring(column_ifexists('rolledup_observation_id_s', '')),
-                    Severity = todouble(column_ifexists('Severity', '')),
-                    SeverityCategory = tostring(column_ifexists('severity_category_s', '')),
-                    Tags = todynamic(column_ifexists('tags_s', '')),
-                    AssetOverrides = tostring(column_ifexists('asset_overrides_s', '')),
-                    Duration = tostring(column_ifexists('duration_s', '')),
-                    AttributedCompanies = tostring(column_ifexists('attributed_companies_s', '')),
-                    CompanyName = tostring(column_ifexists('company_name_s', '')),
-                    RemainingDecay = todouble(column_ifexists('remaining_decay_d', ''))
             | project
                     TimeGenerated,
                     EventVendor,

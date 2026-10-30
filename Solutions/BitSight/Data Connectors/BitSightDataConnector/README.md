@@ -109,8 +109,8 @@ Azure_Client_Secret | None
 Azure_Tenant_Id | None
 Companies  | ALL
 Workspace ID  | None
-Portfolio_Companies_Table_Name | Portfolio_Companies
-Alerts_Table_Name  | Alerts_data
+Portfolio_Companies_Table_Name | BitsightPortfolio_Companies
+Alerts_Table_Name  | BitsightAlerts_data
 Breaches_Table_Name | BitsightBreaches_data
 Company_Table_Name  | BitsightCompany_details
 Company_Rating_Details_Table_Name  | BitsightCompany_rating_details
