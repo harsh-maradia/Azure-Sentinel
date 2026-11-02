@@ -1,23 +1,48 @@
 ﻿id: 144a9fa0-98a3-40f7-b39e-9c7ff0229290
 Function:
   Title: Parser for BitSightObservationStatistics
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightObservationStatistics
 FunctionAlias: BitSightObservationStatistics
 FunctionQuery: |
+    let LocalData = (
+        BitsightObservation_statistics_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "ObservationStatistics",
+                    Count = todouble(column_ifexists('count', '')),
+                    CountPeriod = tostring(column_ifexists('count_period', '')),
+                    AverageDurationDays = todouble(column_ifexists('average_duration_days', '')),
+                    RiskVector = tostring(column_ifexists('risk_vector', '')),
+                    CompanyName = tostring(column_ifexists('Company_name', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Count,
+                    CountPeriod,
+                    AverageDurationDays,
+                    RiskVector,
+                    CompanyName
+    );
     union isfuzzy=true
         (
-            BitsightObservation_statistics_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').BitsightObservation_statistics_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "ObservationStatistics",
-                    Count = column_ifexists('count', ''),
-                    CountPeriod = column_ifexists('count_period', ''),
-                    AverageDurationDays = column_ifexists('average_duration_days', ''),
-                    RiskVector = column_ifexists('risk_vector', ''),
-                    CompanyName = column_ifexists('Company_name', '')
+                    Count = todouble(column_ifexists('count_d','')),
+                    CountPeriod = tostring(column_ifexists('count_period_s','')),
+                    AverageDurationDays = todouble(column_ifexists('average_duration_days_d','')),
+                    RiskVector = tostring(column_ifexists('risk_vector_s','')),
+                    CompanyName = tostring(column_ifexists('Company_name_s',''))
+            | where strcat(CompanyName,'|',RiskVector,'|',CountPeriod) !in (toscalar(LocalData | summarize make_set(strcat(CompanyName,'|',RiskVector,'|',CountPeriod))))
             | project
                     TimeGenerated,
                     EventVendor,

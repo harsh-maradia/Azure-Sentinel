@@ -1,29 +1,66 @@
 ﻿id: 1280e2d5-9d9a-4455-8aec-3e340a3ffeb2
 Function:
   Title: Parser for BitSightCompanyRatings
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightCompanyRatings
 FunctionAlias: BitSightCompanyRatings
 FunctionQuery: |
+    let LocalData = (
+        BitsightCompany_rating_details_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "CompanyRating",
+                    CompanyName = tostring(column_ifexists('Company_name', '')),
+                    Beta = tobool(column_ifexists('beta', '')),
+                    Category = tostring(column_ifexists('category', '')),
+                    CategoryOrder = todouble(column_ifexists('category_order', '')),
+                    DisplayURL = tostring(column_ifexists('display_url', '')),
+                    Grade = tostring(column_ifexists('grade', '')),
+                    GradeColor = tostring(column_ifexists('grade_color', '')),
+                    Name = tostring(column_ifexists('name', '')),
+                    Order = todouble(column_ifexists('order', '')),
+                    Percentile = tostring(column_ifexists('percentile', '')),
+                    Rating = tostring(column_ifexists('rating', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    CompanyName,
+                    Beta,
+                    Category,
+                    CategoryOrder,
+                    DisplayURL,
+                    Grade,
+                    GradeColor,
+                    Name,
+                    Order,
+                    Percentile,
+                    Rating
+    );
     union isfuzzy=true
         (
-            BitsightCompany_rating_details_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').BitsightCompany_rating_details_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "CompanyRating",
-                    CompanyName = column_ifexists('Company_name', ''),
-                    Beta = column_ifexists('beta', ''),
-                    Category = column_ifexists('category', ''),
-                    CategoryOrder = column_ifexists('category_order', ''),
-                    DisplayURL = column_ifexists('display_url', ''),
-                    Grade = column_ifexists('grade', ''),
-                    GradeColor = column_ifexists('grade_color', ''),
-                    Name = column_ifexists('name', ''),
-                    Order = column_ifexists('order', ''),
-                    Percentile = column_ifexists('percentile', ''),
-                    Rating = column_ifexists('rating', '')
+                    CompanyName = tostring(column_ifexists('Company_name_s','')),
+                    Beta = tobool(column_ifexists('beta_b','')),
+                    Category = tostring(column_ifexists('Category','')),
+                    CategoryOrder = todouble(column_ifexists('category_order_d','')),
+                    DisplayURL = tostring(column_ifexists('display_url_s','')),
+                    Grade = tostring(column_ifexists('grade_s','')),
+                    GradeColor = tostring(column_ifexists('grade_color_s','')),
+                    Name = tostring(column_ifexists('name_s','')),
+                    Order = todouble(column_ifexists('order_d','')),
+                    Percentile = coalesce(tostring(column_ifexists('percentile_s','')), tostring(column_ifexists('percentile_d',''))),
+                    Rating = coalesce(tostring(column_ifexists('rating_s','')), tostring(column_ifexists('rating_d','')))
+            | where strcat(CompanyName,'|',Category,'|',Name) !in (toscalar(LocalData | summarize make_set(strcat(CompanyName,'|',Category,'|',Name))))
             | project
                     TimeGenerated,
                     EventVendor,

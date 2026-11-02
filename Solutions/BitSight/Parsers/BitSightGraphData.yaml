@@ -1,22 +1,45 @@
 ﻿id: 6495f5c6-12ac-4416-8060-94e3cfad695b
 Function:
   Title: Parser for BitSightGraphData
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightGraphData
 FunctionAlias: BitSightGraphData
 FunctionQuery: |
+    let LocalData = (
+        BitsightGraph_data_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "GraphData",
+                    RatingDate = todatetime(column_ifexists('Rating_Date', '')),
+                    Rating = todouble(column_ifexists('Rating', '')),
+                    CompanyName = tostring(column_ifexists('Company_name', '')),
+                    RatingDifferance = todouble(column_ifexists('Rating_differance', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    RatingDate,
+                    Rating,
+                    CompanyName,
+                    RatingDifferance
+    );
     union isfuzzy=true
         (
-            BitsightGraph_data_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').BitsightGraph_data_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "GraphData",
-                    RatingDate = column_ifexists('Rating_Date', ''),
-                    Rating = column_ifexists('Rating', ''),
-                    CompanyName = column_ifexists('Company_name', ''),
-                    RatingDifferance = column_ifexists('Rating_differance', '')
+                    RatingDate = todatetime(column_ifexists('Rating_Date_s','')),
+                    Rating = todouble(column_ifexists('Rating_d','')),
+                    CompanyName = tostring(column_ifexists('Company_name_s','')),
+                    RatingDifferance = todouble(column_ifexists('Rating_differance_d',''))
+            | where strcat(CompanyName,'|',tostring(RatingDate)) !in (toscalar(LocalData | summarize make_set(strcat(CompanyName,'|',tostring(RatingDate)))))
             | project
                     TimeGenerated,
                     EventVendor,

@@ -1,29 +1,66 @@
 ﻿id: ce09d0fb-6816-496d-822e-198a56187a30
 Function:
   Title: Parser for BitSightAlerts
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightAlerts
 FunctionAlias: BitSightAlerts
 FunctionQuery: |
+    let LocalData = (
+        Alerts_data_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "Alert",
+                    GUID = todouble(column_ifexists('guid', '')),
+                    AlertType = tostring(column_ifexists('alert_type', '')),
+                    AlertDate = todatetime(column_ifexists('alert_date', '')),
+                    StartDate = todatetime(column_ifexists('start_date', '')),
+                    CompanyName = tostring(column_ifexists('company_name', '')),
+                    CompanyGUID = tostring(column_ifexists('company_guid', '')),
+                    CompanyURL = tostring(column_ifexists('company_url', '')),
+                    FolderGUID = tostring(column_ifexists('folder_guid', '')),
+                    FolderName = tostring(column_ifexists('folder_name', '')),
+                    Severity = tostring(column_ifexists('severity', '')),
+                    Trigger = tostring(column_ifexists('trigger', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    GUID,
+                    AlertType,
+                    AlertDate,
+                    StartDate,
+                    CompanyName,
+                    CompanyGUID,
+                    CompanyURL,
+                    FolderGUID,
+                    FolderName,
+                    Severity,
+                    Trigger
+    );
     union isfuzzy=true
         (
-            Alerts_data_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').Alerts_data_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "Alert",
-                    GUID = column_ifexists('guid', ''),
-                    AlertType = column_ifexists('alert_type', ''),
-                    AlertDate = column_ifexists('alert_date', ''),
-                    StartDate = column_ifexists('start_date', ''),
-                    CompanyName = column_ifexists('company_name', ''),
-                    CompanyGUID = column_ifexists('company_guid', ''),
-                    CompanyURL = column_ifexists('company_url', ''),
-                    FolderGUID = column_ifexists('folder_guid', ''),
-                    FolderName = column_ifexists('folder_name', ''),
-                    Severity = column_ifexists('severity', ''),
-                    Trigger = column_ifexists('trigger', '')
+                    GUID = todouble(column_ifexists('guid_d','')),
+                    AlertType = tostring(column_ifexists('alert_type_s','')),
+                    AlertDate = todatetime(column_ifexists('alert_date_s','')),
+                    StartDate = todatetime(column_ifexists('start_date_s','')),
+                    CompanyName = tostring(column_ifexists('company_name_s','')),
+                    CompanyGUID = tostring(column_ifexists('company_guid_g','')),
+                    CompanyURL = tostring(column_ifexists('company_url_s','')),
+                    FolderGUID = tostring(column_ifexists('folder_guid_g','')),
+                    FolderName = tostring(column_ifexists('folder_name_s','')),
+                    Severity = tostring(column_ifexists('severity_s','')),
+                    Trigger = tostring(column_ifexists('trigger_s',''))
+            | where GUID !in (toscalar(LocalData | summarize make_set(GUID)))
             | project
                     TimeGenerated,
                     EventVendor,

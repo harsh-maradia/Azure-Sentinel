@@ -1,44 +1,111 @@
 ﻿id: 4bb0ba56-5a8c-4b74-88c5-237037eaa3ee
 Function:
   Title: Parser for BitSightFindingsData
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightFindingsData
 FunctionAlias: BitSightFindingsData
 FunctionQuery: |
+    let LocalData = (
+        BitsightFindings_data_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "FindingsData",
+                    RemediationHistoryLastRequestedRefreshDate = tostring(column_ifexists('remediation_history_last_requested_refresh_date', '')),
+                    RemediationHistoryLastRefreshStatusDate = tostring(column_ifexists('remediation_history_last_refresh_status_date', '')),
+                    RemediationHistoryLastRefreshStatusLabel = tostring(column_ifexists('remediation_history_last_refresh_status_label', '')),
+                    RemediationHistoryLastRefreshReasonCode = tostring(column_ifexists('remediation_history_last_refresh_reason_code', '')),
+                    Comments = tostring(column_ifexists('comments', '')),
+                    TemporaryId = tostring(column_ifexists('temporary_id', '')),
+                    PcapID = tostring(column_ifexists('pcap_id', '')),
+                    AffectsRating = tobool(column_ifexists('affects_rating', '')),
+                    Assets = todynamic(column_ifexists('assets', '')),
+                    Details = todynamic(column_ifexists('details', '')),
+                    EvidenceKey = tostring(column_ifexists('evidence_key', '')),
+                    FirstSeen = todatetime(column_ifexists('first_seen', '')),
+                    LastSeen = todatetime(column_ifexists('last_seen', '')),
+                    RelatedFindings = todynamic(column_ifexists('related_findings', '')),
+                    RiskCategory = tostring(column_ifexists('risk_category', '')),
+                    RiskVector = tostring(column_ifexists('risk_vector', '')),
+                    RiskVectorLabel = tostring(column_ifexists('risk_vector_label', '')),
+                    RolledupObservationId = tostring(column_ifexists('rolledup_observation_id', '')),
+                    Severity = todouble(column_ifexists('severity', '')),
+                    SeverityCategory = tostring(column_ifexists('severity_category', '')),
+                    Tags = todynamic(column_ifexists('tags', '')),
+                    AssetOverrides = tostring(column_ifexists('asset_overrides', '')),
+                    Duration = tostring(column_ifexists('duration', '')),
+                    AttributedCompanies = tostring(column_ifexists('attributed_companies', '')),
+                    CompanyName = tostring(column_ifexists('company_name', '')),
+                    RemainingDecay = todouble(column_ifexists('remaining_decay', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    RemediationHistoryLastRequestedRefreshDate,
+                    RemediationHistoryLastRefreshStatusDate,
+                    RemediationHistoryLastRefreshStatusLabel,
+                    RemediationHistoryLastRefreshReasonCode,
+                    Comments,
+                    TemporaryId,
+                    PcapID,
+                    AffectsRating,
+                    Assets,
+                    Details,
+                    EvidenceKey,
+                    FirstSeen,
+                    LastSeen,
+                    RelatedFindings,
+                    RiskCategory,
+                    RiskVector,
+                    RiskVectorLabel,
+                    RolledupObservationId,
+                    Severity,
+                    SeverityCategory,
+                    Tags,
+                    AssetOverrides,
+                    Duration,
+                    AttributedCompanies,
+                    CompanyName,
+                    RemainingDecay
+    );
     union isfuzzy=true
         (
-            BitsightFindings_data_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').BitsightFindings_data_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "FindingsData",
-                    RemediationHistoryLastRequestedRefreshDate = column_ifexists('remediation_history_last_requested_refresh_date', ''),
-                    RemediationHistoryLastRefreshStatusDate = column_ifexists('remediation_history_last_refresh_status_date', ''),
-                    RemediationHistoryLastRefreshStatusLabel = column_ifexists('remediation_history_last_refresh_status_label', ''),
-                    RemediationHistoryLastRefreshReasonCode = column_ifexists('remediation_history_last_refresh_reason_code', ''),
-                    Comments = column_ifexists('comments', ''),
-                    TemporaryId = column_ifexists('temporary_id', ''),
-                    PcapID = column_ifexists('pcap_id', ''),
-                    AffectsRating = column_ifexists('affects_rating', ''),
-                    Assets = column_ifexists('assets', ''),
-                    Details = column_ifexists('details', ''),
-                    EvidenceKey = column_ifexists('evidence_key', ''),
-                    FirstSeen = column_ifexists('first_seen', ''),
-                    LastSeen = column_ifexists('last_seen', ''),
-                    RelatedFindings = column_ifexists('related_findings', ''),
-                    RiskCategory = column_ifexists('risk_category', ''),
-                    RiskVector = column_ifexists('risk_vector', ''),
-                    RiskVectorLabel = column_ifexists('risk_vector_label', ''),
-                    RolledupObservationId = column_ifexists('rolledup_observation_id', ''),
-                    Severity = column_ifexists('severity', ''),
-                    SeverityCategory = column_ifexists('severity_category', ''),
-                    Tags = column_ifexists('tags', ''),
-                    AssetOverrides = column_ifexists('asset_overrides', ''),
-                    Duration = column_ifexists('duration', ''),
-                    AttributedCompanies = column_ifexists('attributed_companies', ''),
-                    CompanyName = column_ifexists('company_name', ''),
-                    RemainingDecay = column_ifexists('remaining_decay', '')
+                    RemediationHistoryLastRequestedRefreshDate = tostring(column_ifexists('remediation_history_last_requested_refresh_date_s','')),
+                    RemediationHistoryLastRefreshStatusDate = tostring(column_ifexists('remediation_history_last_refresh_status_date_s','')),
+                    RemediationHistoryLastRefreshStatusLabel = tostring(column_ifexists('remediation_history_last_refresh_status_label_s','')),
+                    RemediationHistoryLastRefreshReasonCode = tostring(column_ifexists('remediation_history_last_refresh_reason_code_s','')),
+                    Comments = tostring(column_ifexists('comments_s','')),
+                    TemporaryId = tostring(column_ifexists('temporary_id_s','')),
+                    PcapID = tostring(column_ifexists('pcap_id_s','')),
+                    AffectsRating = tobool(column_ifexists('affects_rating_b','')),
+                    Assets = todynamic(column_ifexists('assets_s','')),
+                    Details = todynamic(column_ifexists('details_s','')),
+                    EvidenceKey = tostring(column_ifexists('evidence_key_s','')),
+                    FirstSeen = todatetime(column_ifexists('first_seen_s','')),
+                    LastSeen = todatetime(column_ifexists('last_seen_s','')),
+                    RelatedFindings = todynamic(column_ifexists('related_findings_s','')),
+                    RiskCategory = tostring(column_ifexists('risk_category_s','')),
+                    RiskVector = tostring(column_ifexists('risk_vector_s','')),
+                    RiskVectorLabel = tostring(column_ifexists('risk_vector_label_s','')),
+                    RolledupObservationId = tostring(column_ifexists('rolledup_observation_id_s','')),
+                    Severity = todouble(column_ifexists('severity_d','')),
+                    SeverityCategory = tostring(column_ifexists('severity_category_s','')),
+                    Tags = todynamic(column_ifexists('tags_s','')),
+                    AssetOverrides = tostring(column_ifexists('asset_overrides_s','')),
+                    Duration = tostring(column_ifexists('duration_s','')),
+                    AttributedCompanies = tostring(column_ifexists('attributed_companies_s','')),
+                    CompanyName = tostring(column_ifexists('company_name_s','')),
+                    RemainingDecay = todouble(column_ifexists('remaining_decay_d',''))
+            | where strcat(TemporaryId,'|',RiskVector,'|',CompanyName) !in (toscalar(LocalData | summarize make_set(strcat(TemporaryId,'|',RiskVector,'|',CompanyName))))
             | project
                     TimeGenerated,
                     EventVendor,

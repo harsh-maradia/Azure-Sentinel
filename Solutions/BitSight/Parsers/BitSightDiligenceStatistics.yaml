@@ -1,31 +1,72 @@
 ﻿id: 3900f610-56b5-4f8f-84f4-291d9b41dfe2
 Function:
   Title: Parser for BitSightDiligenceStatistics
-  Version: '1.1.0'
-  LastUpdated: '2026-05-25'
+  Version: '1.2.0'
+  LastUpdated: '2026-11-02'
 Category: Microsoft Sentinel Parser
 FunctionName: BitSightDiligenceStatistics
 FunctionAlias: BitSightDiligenceStatistics
 FunctionQuery: |
+    let LocalData = (
+        BitsightDiligence_statistics_CL
+        | extend
+                    EventVendor = "BitSight",
+                    EventProduct = "DiligenceStatistics",
+                    Unknown = todouble(column_ifexists('unknown', '')),
+                    Bad = todouble(column_ifexists('bad', '')),
+                    Warn = todouble(column_ifexists('warn', '')),
+                    Neutral = todouble(column_ifexists('neutral', '')),
+                    Fair = todouble(column_ifexists('fair', '')),
+                    Good = todouble(column_ifexists('good', '')),
+                    RiskVector = tostring(column_ifexists('risk_vector', '')),
+                    CompanyName = tostring(column_ifexists('Company_name', '')),
+                    SpearPhishing = todouble(column_ifexists('spear_phishing', '')),
+                    BitFlip = todouble(column_ifexists('bit_flip', '')),
+                    TypographicalErrors = todouble(column_ifexists('typographical_errors', '')),
+                    TLDVariant = todouble(column_ifexists('tld_variant', '')),
+                    TotalCount = todouble(column_ifexists('total_count', ''))
+        | project
+                    TimeGenerated,
+                    EventVendor,
+                    EventProduct,
+                    Unknown,
+                    Bad,
+                    Warn,
+                    Neutral,
+                    Fair,
+                    Good,
+                    RiskVector,
+                    CompanyName,
+                    SpearPhishing,
+                    BitFlip,
+                    TypographicalErrors,
+                    TLDVariant,
+                    TotalCount
+    );
     union isfuzzy=true
         (
-            BitsightDiligence_statistics_CL
+            LocalData
+        ),
+        (
+            // 3.0.x classic table in the old workspace (HTTP Data Collector API, suffixed columns)
+            workspace('413d4385-18c4-4f38-bfa4-266196b82b38').BitsightDiligence_statistics_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "DiligenceStatistics",
-                    Unknown = column_ifexists('unknown', ''),
-                    Bad = column_ifexists('bad', ''),
-                    Warn = column_ifexists('warn', ''),
-                    Neutral = column_ifexists('neutral', ''),
-                    Fair = column_ifexists('fair', ''),
-                    Good = column_ifexists('good', ''),
-                    RiskVector = column_ifexists('risk_vector', ''),
-                    CompanyName = column_ifexists('Company_name', ''),
-                    SpearPhishing = column_ifexists('spear_phishing', ''),
-                    BitFlip = column_ifexists('bit_flip', ''),
-                    TypographicalErrors = column_ifexists('typographical_errors', ''),
-                    TLDVariant = column_ifexists('tld_variant', ''),
-                    TotalCount = column_ifexists('total_count', '')
+                    Unknown = todouble(column_ifexists('unknown_d','')),
+                    Bad = todouble(column_ifexists('bad_d','')),
+                    Warn = todouble(column_ifexists('warn_d','')),
+                    Neutral = todouble(column_ifexists('neutral_d','')),
+                    Fair = todouble(column_ifexists('fair_d','')),
+                    Good = todouble(column_ifexists('good_d','')),
+                    RiskVector = tostring(column_ifexists('risk_vector_s','')),
+                    CompanyName = tostring(column_ifexists('Company_name_s','')),
+                    SpearPhishing = todouble(column_ifexists('spear_phishing_d','')),
+                    BitFlip = todouble(column_ifexists('bit_flip_d','')),
+                    TypographicalErrors = todouble(column_ifexists('typographical_errors_d','')),
+                    TLDVariant = todouble(column_ifexists('tld_variant_d','')),
+                    TotalCount = todouble(column_ifexists('total_count_d',''))
+            | where strcat(CompanyName,'|',RiskVector) !in (toscalar(LocalData | summarize make_set(strcat(CompanyName,'|',RiskVector))))
             | project
                     TimeGenerated,
                     EventVendor,
