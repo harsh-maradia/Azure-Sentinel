@@ -66,7 +66,7 @@
         },
         "Portfolio_Companies_Table_Name":{
             "type": "string",
-            "defaultValue": "BitsightPortfolio_Companies",
+            "defaultValue": "Portfolio_Companies",
             "minLength": 1,
             "maxLength": 42,
             "metadata": {
@@ -75,7 +75,7 @@
         },
 		"Alerts_Table_Name":{
             "type": "string",
-            "defaultValue": "BitsightAlerts_data",
+            "defaultValue": "Alerts_data",
             "minLength": 1,
             "maxLength": 42,
             "metadata": {

@@ -9,7 +9,7 @@ FunctionAlias: BitSightAlerts
 FunctionQuery: |
     union isfuzzy=true
         (
-            BitsightAlerts_data_CL
+            Alerts_data_CL
             | extend
                     EventVendor = "BitSight",
                     EventProduct = "Alert",

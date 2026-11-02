@@ -6,7 +6,7 @@
     "config": {
       "isWizard": false,
       "basics": {
-        "description": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/BitSight.svg\" width=\"75px\" height=\"75px\">\n\n**Note:** Please refer to the following before installing the solution: \n\n• Review the solution [Release Notes](https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/BitSight/ReleaseNotes.md)\n\n • There may be [known issues](https://aka.ms/sentinelsolutionsknownissues) pertaining to this Solution, please refer to them before installing.\n\nThe [BitSight](https://www.bitsight.com/) solution enables security operations teams to integrate insights from BitSight's Security Ratings platform into Microsoft Sentinel via the Codeless Connector Framework (CCF). The connector ingests Security Ratings, Company Profiles, Risk Vector breakdowns, Diligence Historical Statistics, Findings Summaries, Industry peer comparisons, and Vulnerability reference data for companies in your BitSight portfolio.\n\n**Underlying Microsoft Technologies used:**\n\nThis solution takes a dependency on the following technologies, and some of these dependencies either may be in [Preview](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) state or might result in additional ingestion or operational costs:\n\na. [Codeless Connector Framework (CCF)](https://learn.microsoft.com/azure/sentinel/create-codeless-connector)\n\n**Data Connectors:** 3, **Parsers:** 14, **Workbooks:** 1, **Analytic Rules:** 6\n\n[Learn more about Microsoft Sentinel](https://aka.ms/azuresentinel) | [Learn more about Solutions](https://aka.ms/azuresentinelsolutionsdoc)",
+        "description": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/BitSight.svg\" width=\"75px\" height=\"75px\">\n\n**Note:** Please refer to the following before installing the solution: \n\n• Review the solution [Release Notes](https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/BitSight/ReleaseNotes.md)\n\n • There may be [known issues](https://aka.ms/sentinelsolutionsknownissues) pertaining to this Solution, please refer to them before installing.\n\nThe [BitSight](https://www.bitsight.com/) solution enables security operations teams to integrate insights from BitSight's Security Ratings platform into Microsoft Sentinel via the Codeless Connector Framework (CCF). The connector ingests Security Ratings, Company Profiles, Risk Vector breakdowns, Diligence Historical Statistics, Findings Summaries, Industry peer comparisons, and Vulnerability reference data for companies in your BitSight portfolio.\n\n**Underlying Microsoft Technologies used:**\n\nThis solution takes a dependency on the following technologies, and some of these dependencies either may be in [Preview](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) state or might result in additional ingestion or operational costs:\n\na. [Codeless Connector Framework (CCF)](https://learn.microsoft.com/azure/sentinel/create-codeless-connector)\n\n**Data Connectors:** 1, **Parsers:** 14, **Workbooks:** 1\n\n[Learn more about Microsoft Sentinel](https://aka.ms/azuresentinel) | [Learn more about Solutions](https://aka.ms/azuresentinelsolutionsdoc)",
         "subscription": {
           "resourceProviders": [
             "Microsoft.OperationsManagement/solutions",
@@ -64,31 +64,14 @@
             }
           },
           {
-            "name": "dataconnectors2-text",
+            "name": "dataconnectors-parser-text",
             "type": "Microsoft.Common.TextBlock",
             "options": {
-              "text": "This Solution installs the data connector for BitSight Security Events (via Codeless Connector Framework). You can get BitSight Security Events (via Codeless Connector Framework) data in your Microsoft Sentinel workspace. After installing the solution, configure and enable this data connector by following guidance in Manage solution view."
+              "text": "The Solution installs a parser that transforms the ingested data into Microsoft Sentinel normalized format. The normalized format enables better correlation of different types of data from different data sources to drive end-to-end outcomes seamlessly in security monitoring, hunting, incident investigation and response scenarios in Microsoft Sentinel."
             }
           },
           {
-            "name": "dataconnectors-link2",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "link": {
-                "label": "Learn more about connecting data sources",
-                "uri": "https://docs.microsoft.com/azure/sentinel/connect-data-sources"
-              }
-            }
-          },
-          {
-            "name": "dataconnectors3-text",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "text": "This Solution installs the data connector for BitSight Security Statistics (via Codeless Connector Framework). You can get BitSight Security Statistics (via Codeless Connector Framework) data in your Microsoft Sentinel workspace. After installing the solution, configure and enable this data connector by following guidance in Manage solution view."
-            }
-          },
-          {
-            "name": "dataconnectors-link3",
+            "name": "dataconnectors-link1",
             "type": "Microsoft.Common.TextBlock",
             "options": {
               "link": {
@@ -135,118 +118,6 @@
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
                   "text": "Gain insights into BitSight data."
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "name": "analytics",
-        "label": "Analytics",
-        "subLabel": {
-          "preValidation": "Configure the analytics",
-          "postValidation": "Done"
-        },
-        "bladeTitle": "Analytics",
-        "elements": [
-          {
-            "name": "analytics-text",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "text": "This solution installs the following analytic rule templates. After installing the solution, create and enable analytic rules in Manage solution view."
-            }
-          },
-          {
-            "name": "analytics-link",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "link": {
-                "label": "Learn more",
-                "uri": "https://docs.microsoft.com/azure/sentinel/tutorial-detect-threats-custom?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef"
-              }
-            }
-          },
-          {
-            "name": "analytic1",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - drop in company ratings",
-            "elements": [
-              {
-                "name": "analytic1-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect when there is a drop of 10% or more in BitSight company ratings."
-                }
-              }
-            ]
-          },
-          {
-            "name": "analytic2",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - new alert found",
-            "elements": [
-              {
-                "name": "analytic2-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect a new alerts generated in BitSight."
-                }
-              }
-            ]
-          },
-          {
-            "name": "analytic3",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - compromised systems detected",
-            "elements": [
-              {
-                "name": "analytic3-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect whenever there is a compromised systems found in BitSight."
-                }
-              }
-            ]
-          },
-          {
-            "name": "analytic4",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - diligence risk category detected",
-            "elements": [
-              {
-                "name": "analytic4-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect whenever there is a diligence risk category found in BitSight."
-                }
-              }
-            ]
-          },
-          {
-            "name": "analytic5",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - drop in the headline rating",
-            "elements": [
-              {
-                "name": "analytic5-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect if headline ratings is drop in BitSight."
-                }
-              }
-            ]
-          },
-          {
-            "name": "analytic6",
-            "type": "Microsoft.Common.Section",
-            "label": "BitSight - new breach found",
-            "elements": [
-              {
-                "name": "analytic6-text",
-                "type": "Microsoft.Common.TextBlock",
-                "options": {
-                  "text": "Rule helps to detect a new breach generated in BitSight."
                 }
               }
             ]
